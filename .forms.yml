@@ -1,0 +1,140 @@
+################################################################################
+# Stackforms: documentation at https://docs.cycloid.io/deploy/stackforms/feature.html
+################################################################################
+
+# YAML anchors
+shared:
+- &global
+  name: Global
+  groups:
+  - name: Global
+    technologies: [pipeline]
+    vars:
+    - name: Display advanced options
+      description: Check to see advanced options to configure your project.
+      key: advanced_opt
+      widget: switch
+      type: boolean
+      default: false
+
+version: "2"
+use_cases:
+- name: cycloid-common
+  sections:
+  - name: Advanced (optional)
+    groups:
+    - name: Terraform
+      condition: advanced_opt==true
+      technologies: [pipeline]
+      vars:
+        - name: "AWS access key"
+          description: "Amazon AWS access key for Terraform."
+          key: aws_access_key
+          widget: cy_cred
+          type: string
+          default: "((cycloid-admin.access_key))"
+        - name: "AWS secret key"
+          description: "Amazon AWS secret key for Terraform."
+          key: aws_secret_key
+          widget: cy_cred
+          type: string
+          default: "((cycloid-admin.secret_key))"
+        - name: "Aws region"
+          key: aws_default_region
+          type: string
+          widget: auto_complete
+          values: ["eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+          default: "eu-west-1"
+        - name: "Terraform version"
+          description: "Terraform version to use."
+          key: terraform_version
+          widget: simple_text
+          type: string
+          default: "1.6.4"
+
+- name: aws_eks
+  sections:
+  - *global
+
+  - name: EKS control plane
+    groups:
+    - name: Global
+      technologies: [terraform]
+      vars:
+      - name: "Kubernetes version"
+        description: "Kubernetes version to use."
+        key: module.eks.cluster_version
+        widget: simple_text
+        type: string
+        default: "1.28"
+
+    - name: VPC
+      technologies: [pipeline]
+      vars:
+      - name: "VPC ip digite to generate the /16"
+        description: "Digite use by the CIDR 10.X.0.0/16. (Example: **prod**: **0** = 10.0.0.0/16, **staging**: **1** = 10.1.0.0/16, **dev**: **2** = 10.2.0.0/16) (Should change on **prod**)"
+        key: subnet_ip_digit
+        widget: simple_text
+        type: string
+        required: true
+
+    - name: Node-pipeline
+      technologies: [pipeline]
+      vars:
+      - name: "EKS Node type"
+        description: "Type of Aws EC2 instance for nodes. (Should change on **prod**)"
+        key: node_instance_type
+        widget: auto_complete
+        type: string
+        default: "t3.large"
+        values:
+            - "t3.large"
+            - "m6i.large"
+            - "m5.large"
+            - "m5n.large"
+            - "m5zn.large"
+            - "c6a.large"
+            - "c6a.xlarge"
+            - "c6a.2xlarge"
+      - name: "EKS node disk size"
+        unit: Go
+        description: "Disk size of Aws EKS nodes."
+        key: node_disk_size
+        widget: slider_range
+        type: integer
+        default: 50
+        values:
+            - 10
+            - 1000
+
+      - name: "Number of EKS Node"
+        description: "Desired capacity of nodes. (Should change on **prod**)"
+        key: node_desired_size
+        widget: number
+        type: integer
+        default: 1
+
+      - name: "Max number of EKS Node"
+        description: "Max number of nodes allowed to scale."
+        key: node_max_size
+        widget: number
+        type: integer
+        default: 10
+
+  - name: Extra services
+    groups:
+    - name: Global
+      technologies: [pipeline]
+      vars:
+      - name: "Create Prometheus server ?"
+        description: "If true, deploy Prometheus server."
+        key: prometheus_enabled
+        widget: switch
+        type: boolean
+        default: false
+      - name: "Create fluent-bit server ?"
+        description: "If true, deploy fluent-bit server."
+        key: fluentbit_enabled
+        widget: switch
+        type: boolean
+        default: false

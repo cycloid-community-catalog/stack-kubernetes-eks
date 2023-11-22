@@ -1,0 +1,30 @@
+---
+version: '2'
+name: AWS EKS Cluster
+canonical: kubernetes-aws-eks
+description: |
+  Manage AWS EKS Control Plane and Node Groups ...
+keywords:
+  - Cycloid
+  - kubernetes
+  - k8s
+  - eks
+  - rds
+  - redis
+author: Cycloid
+image: https://miro.medium.com/v2/resize:fit:736/0*G_76NEpJHeR9xFsz.png
+
+config:
+  aws_eks:
+    name: AWS EKS
+    description: Manage a EKS Control Plane, node group, iam, vpc, subnet ...
+    pipeline:
+      pipeline:
+        path: pipeline/pipeline.yml
+      variables:
+        path: pipeline/variables-aws-eks.sample.yml
+        destination: '($ project $)/pipeline/($ environment $)/variables.yml'
+    terraform:
+      eks:
+        path: 'terraform/aws-eks/main.tf.sample'
+        destination: '($ project $)/terraform/($ environment $)/main.tf'

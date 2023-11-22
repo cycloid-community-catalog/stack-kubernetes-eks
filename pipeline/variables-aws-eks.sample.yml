@@ -1,0 +1,80 @@
+################################################################################
+# Stack variables
+################################################################################
+
+# "Git repository URL of the stack."
+stack_git_repository: "($ scs_url $)"
+
+# "SSH key pair to fetch the stacks repository."
+stack_git_private_key: ((($ scs_cred_path $).ssh_key))
+
+# "The branch used by the stacks repository"
+stack_git_branch: "($ scs_branch $)"
+
+################################################################################
+# Config variables
+################################################################################
+
+# "Git repository URL containing the config of the stack."
+config_git_repository: "($ cr_url $)"
+
+# "SSH key pair to fetch the config Git repository."
+config_git_private_key: ((($ cr_cred_path $).ssh_key))
+
+# "The branch used by the config repository"
+config_git_branch: "($ cr_branch $)"
+
+config_terraform_path: ($ project $)/terraform/($ environment $)
+
+
+################################################################################
+# Terraform variables
+################################################################################
+
+# "Terraform version to use."
+terraform_version:
+
+# "Amazon AWS access key for Terraform."
+aws_access_key:
+
+# "Amazon AWS secret key for Terraform."
+aws_secret_key:
+
+aws_default_region:
+
+# "AWS S3 bucket name to store terraform remote state file."
+terraform_storage_bucket_name:
+terraform_storage_region: "eu-west-1"
+
+### Terraform variables provided by stackforms
+node_instance_type: ""
+node_desired_size: ""
+node_max_size: ""
+subnet_ip_digit: ""
+node_disk_size: ""
+
+################################################################################
+# Cycloid/Pipeline variables
+################################################################################
+#. env (required): ($ environment $)
+#+ Name of the project's environment.
+env: ($ environment $)
+
+#. project (required): ($ project $)
+#+ Name of the project.
+project: ($ project $)
+
+#. organization (required): ($ organization_canonical $)
+#+ Name of the Cycloid Organization.
+organization: ($ organization_canonical $)
+
+# Docker image which contain tools and a scripts for cycloid.io deployment pipeline
+# More info at https://github.com/cycloidio/docker-cycloid-toolkit
+cycloid_toolkit_image: "v8.3"
+
+# kubectl version used to run extra cmd. Using alpine/k8s image.
+# https://hub.docker.com/r/alpine/k8s/tags?page=1
+kubectl_version:
+
+# disable by default the advance options on the forms
+advanced_opt: false
