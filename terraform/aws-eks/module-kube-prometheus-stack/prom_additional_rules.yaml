@@ -1,10 +1,20 @@
 ---
+# Override default for & severity
+customRules:
+  KubeNodeNotReady:
+    for: 15m
+    severity: "critical"
+  KubeNodeUnreachable:
+    for: 15m
+    severity: "critical"
+
+# otheride default rules to change the for and severity
+# Add: * on (namespace) group_left() kube_namespace_annotations{annotation_prometheus_monitoring="true"}
+# So it only check pod in namespace with prometheus/monitoring=true annotation
+# + add more labels (receiver) on watchdog
 additionalPrometheusRulesMap:
   rule-name:
     groups:
-      # otheride default rules to change the for and severity
-      # Add: * on (namespace) group_left() kube_namespace_annotations{annotation_prometheus_monitoring="true"}
-      # So it only check pod in namespace with prometheus/monitoring=true annotation
       - name: kubernetes-apps
         rules:
           - alert: KubePodNotReady
@@ -124,8 +134,6 @@ additionalPrometheusRulesMap:
               summary: "Ingress HTTP failure (instance {{ $labels.target }})"
               message: "HTTP status code is not 200-399\n  VALUE = {{ $value }}"
 
-
-
       - name: kubernetes-storage
         rules:
         - alert: KubePersistentVolumeFillingUp
@@ -184,32 +192,6 @@ additionalPrometheusRulesMap:
           expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} * on (namespace) group_left() kube_namespace_annotations{annotation_prometheus_monitoring="true"}
             > 0
           for: 5m
-          labels:
-            severity: critical
-
-
-      - name: kubernetes-system-kubelet
-        rules:
-        - alert: KubeNodeNotReady
-          annotations:
-            description: '{{ $labels.node }} has been unready for more than 15 minutes.'
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodenotready
-            summary: Node is not ready.
-          expr: kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"}
-            == 0
-          for: 15m
-          labels:
-            severity: critical
-
-        - alert: KubeNodeUnreachable
-          annotations:
-            description: '{{ $labels.node }} is unreachable and some workloads may be rescheduled.'
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodeunreachable
-            summary: Node is unreachable.
-          expr: (kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"}
-            unless ignoring(key,value) kube_node_spec_taint{job="kube-state-metrics",key=~"ToBeDeletedByClusterAutoscaler|cloud.google.com/impending-node-termination|aws-node-termination-handler/spot-itn"})
-            == 1
-          for: 15m
           labels:
             severity: critical
 
