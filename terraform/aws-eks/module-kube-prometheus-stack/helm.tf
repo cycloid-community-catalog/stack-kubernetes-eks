@@ -27,11 +27,11 @@ locals {
     "kubeSchedulerAlerting",
     "kubeSchedulerRecording",
     "alertmanager",
-    "kubernetesSystem",
     "prometheus",
     "network",
     "kubernetesStorage",
-    "kubernetesApps"
+    "kubernetesApps",
+    "windows"
   ]
 
   #  (from kubernetesApps rules): because we override labels/for
@@ -51,6 +51,8 @@ locals {
     "KubeletServerCertificateExpiration",
     "KubeletClientCertificateRenewalErrors",
     "KubeletServerCertificateRenewalErrors",
+    "KubeletTooManyPods",
+    "KubeletDown",
     "NodeNetworkReceiveErrs",
     "NodeNetworkTransmitErrs",
     "NodeHighNumberConntrackEntriesUsed",
@@ -148,16 +150,13 @@ EOL
 #oncall_alertnamager_cred.username
 #oncall_alertnamager_cred.password
 
-
-
 # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack
-#VALUES: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
 resource "helm_release" "prometheus_community" {
   count      = var.prometheus_enabled ? 1 : 0
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "54.1.0"
+  version    = "56.14.0"
   namespace  = var.namespace
 
   values = [
