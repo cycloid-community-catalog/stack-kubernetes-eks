@@ -9,6 +9,21 @@ resource "time_sleep" "wait_eks_destroy" {
 }
 
 ################################################################################
+# Module eks-auth - Configuration in this directory creates/updates the aws-auth ConfigMap.
+# https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/modules/aws-auth
+################################################################################
+# Configmap is use to make a link between iam role and k8s cluster role
+module "eks-auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "~> 20.0"
+
+  # Creates aws-auth configmap - to enable acces to cluster using IAM
+  manage_aws_auth_configmap = true
+  # list of role maps to add to the aws-auth configmap
+  aws_auth_roles = local.aws_auth_roles
+}
+
+################################################################################
 # Module aws-load-balancer-controller - manage ingress/service as aws alb/nlb
 # helm chart at https://github.com/kubernetes-sigs/aws-load-balancer-controller/tree/main/helm/aws-load-balancer-controller
 ################################################################################

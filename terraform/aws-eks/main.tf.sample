@@ -3,7 +3,7 @@
 ################################################################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.20.0"
+  version = "~> 20.8.2"
 
   cluster_name    = "${var.project}-${var.env}"
   cluster_version = "1.28"
@@ -12,9 +12,7 @@ module "eks" {
   cluster_addons = {
     # DNS server that can serve as the Kubernetes cluster DNS
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html
-    coredns = {
-      resolve_conflicts = "OVERWRITE"
-    }
+    coredns = {}
     # kube-proxy maintains network rules on nodes
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html
     kube-proxy = {}
@@ -23,7 +21,6 @@ module "eks" {
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html
     # If needed to update manually: https://docs.aws.amazon.com/en_us/eks/latest/userguide/managing-vpc-cni.html
     vpc-cni = {
-      resolve_conflicts = "OVERWRITE"
       # addon_version = "v1.12.0-eksbuild.1"
     }
   }
@@ -100,10 +97,12 @@ module "eks" {
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
-  # Creates aws-auth configmap - to enable acces to cluster using IAM
-  manage_aws_auth_configmap = true
-  # list of role maps to add to the aws-auth configmap
-  aws_auth_roles = local.aws_auth_roles
+  # Enable authentification by API and configmap.
+  # ConfigMap is used to map IAM role to cluster role
+  # https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+  # aws-auth config map has been move to a dedicated module (and might be removed later)
+  # https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/modules/aws-auth
+  authentication_mode = "API_AND_CONFIG_MAP"
 
   # networking
   vpc_id     = module.vpc.vpc_id
@@ -161,7 +160,7 @@ module "eks" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.1.2"
+  version = "~> 5.5.3"
 
   name = "${var.project}-${var.env}"
 
