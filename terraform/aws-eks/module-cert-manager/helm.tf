@@ -1,5 +1,5 @@
 # https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
-#VALUES: https://raw.githubusercontent.com/cert-manager/cert-manager/master/deploy/charts/cert-manager/values.yaml
+# https://github.com/cert-manager/cert-manager/releases
 ################################################################################
 # Helm-release: Cert-Manager
 ################################################################################
@@ -7,7 +7,7 @@ resource "helm_release" "cert_manager" {
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
-  version    = "1.13.2"
+  version    = "1.14.4"
   namespace  = var.namespace
 
   values = [
