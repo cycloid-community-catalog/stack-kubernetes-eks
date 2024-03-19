@@ -1,11 +1,10 @@
 # https://github.com/kubernetes-sigs/aws-load-balancer-controller/tree/main/helm/aws-load-balancer-controller
-#VALUES: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/helm/aws-load-balancer-controller/values.yaml
-
+# https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.6.2"
+  version    = "1.7.1"
   namespace  = var.namespace
 
   values = [

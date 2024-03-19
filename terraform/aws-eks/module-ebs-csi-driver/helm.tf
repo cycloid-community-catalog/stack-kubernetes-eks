@@ -1,5 +1,5 @@
 # https://github.com/kubernetes-sigs/aws-ebs-csi-driver
-#VALUES: https://raw.githubusercontent.com/kubernetes-sigs/aws-ebs-csi-driver/master/charts/aws-ebs-csi-driver/values.yaml
+# https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/CHANGELOG.md
 ################################################################################
 # Helm-release: EBS CSI driver
 ################################################################################
@@ -8,7 +8,7 @@ resource "helm_release" "ebs_csi_driver" {
   name       = "aws-ebs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver/"
   chart      = "aws-ebs-csi-driver"
-  version    = "2.25.0"
+  version    = "2.28.1"
   namespace  = var.namespace
 
   values = [

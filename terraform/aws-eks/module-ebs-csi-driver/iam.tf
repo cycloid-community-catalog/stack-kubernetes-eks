@@ -1,4 +1,5 @@
 # https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/example-iam-policy.json
+# https://flosell.github.io/iam-policy-json-to-terraform/
 data "aws_iam_policy_document" "ebs_csi_driver" {
   statement {
     sid       = ""

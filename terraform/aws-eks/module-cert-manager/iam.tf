@@ -1,5 +1,3 @@
-# Policy
-
 # https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-an-iam-role
 # https://flosell.github.io/iam-policy-json-to-terraform/
 
