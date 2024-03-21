@@ -2,12 +2,12 @@
 # Helm-release: blackbox used to monitor url/ingress
 ################################################################################
 # https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-blackbox-exporter
-#VALUES: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/prometheus-blackbox-exporter/values.yaml
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-blackbox-exporter#upgrading-chart
 resource "helm_release" "prometheus_blackbox" {
   name       = "prometheus-blackbox-exporter"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "prometheus-blackbox-exporter"
-  version    = "8.6.1"
+  version    = "8.12.0"
   namespace  = var.namespace
 
   values = [
