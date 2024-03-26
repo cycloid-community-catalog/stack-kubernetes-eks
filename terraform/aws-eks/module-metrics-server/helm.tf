@@ -2,16 +2,16 @@
 # Helm-release: metrics-server
 ################################################################################
 # Used to provide Horizontal Pod Autoscaling: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
-
 # https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server
-#VALUES: https://raw.githubusercontent.com/kubernetes-sigs/metrics-server/master/charts/metrics-server/values.yaml
+# https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/CHANGELOG.md
+
 # Metric server used to do Horizontal Pod Autoscaler
 
 resource "helm_release" "metrics_server" {
   name       = "metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
-  version    = "3.11.0"
+  version    = "3.12.0"
   namespace  = var.namespace
 
   values = [

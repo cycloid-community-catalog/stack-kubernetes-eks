@@ -137,18 +137,11 @@ module "eks" {
      self        = true
     }
 
-    # webhook_admission_outbond = {
-    #   description                   = "Validating Admission Webhook"
-    #   protocol                      = "tcp"
-    #   from_port                     = 8443
-    #   to_port                       = 8443
-    #   type                          = "egress"
-    #   source_cluster_security_group = true
-    # }
-
+    # https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/node_groups.tf#L130
+    # now by default 8443 "Validating Admission Webhook"
     # now by default 9443 "Allow access from control plane to webhook port of AWS load balancer controller"
-
     # now by default 10250 "Cluster API to metrics server 10250 port"
+    # now allowed by default egress 0.0.0.0/0 "Node all egress"
 
   }
 }
