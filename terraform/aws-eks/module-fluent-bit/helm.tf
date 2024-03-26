@@ -3,7 +3,7 @@
 ################################################################################
 # generic one: https://github.com/fluent/helm-charts
 # aws one: https://github.com/aws/eks-charts/tree/master/stable/aws-for-fluent-bit
-#VALUES: https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-for-fluent-bit/values.yaml
+# https://github.com/aws/eks-charts/releases?q=fluent-bit&expanded=true
 resource "helm_release" "fluent-bit" {
   count      = var.fluentbit_enabled ? 1 : 0
   name       = "aws-for-fluent-bit"
@@ -16,18 +16,12 @@ resource "helm_release" "fluent-bit" {
     file("${path.module}/values.yaml")
   ]
 
-  # disable plugins for services not required
+  # enable plugins for cloudwatch
+  # cloudWatchLogs.: new C high performance plugin
+  # cloudWatch.: old golang plugin
   set {
-    name  = "firehose.enabled"
-    value = false
-  }
-  set {
-    name  = "kinesis.enabled"
-    value = false
-  }
-  set {
-    name  = "elasticsearch.enabled"
-    value = false
+    name  = "cloudWatchLogs.enabled"
+    value = true
   }
 
   # configure IAM permissions to make calls to AWS APIs using service account
@@ -37,25 +31,27 @@ resource "helm_release" "fluent-bit" {
   }
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.fluent-bit[0].arn
+    value = aws_iam_role.fluent-bit.arn
   }
 
   # configure cloudwatch
   set {
-    name  = "cloudWatch.region"
+    name  = "cloudWatchLogs.region"
     value = var.aws_region
   }
   set {
-    name  = "cloudWatch.logGroupName"
+    name  = "cloudWatchLogs.logGroupName"
     value = local.cw_log_group_name
   }
-  # disable default logstreamprefix
-  set {
-    name  = "cloudWatch.logStreamPrefix"
-    value = ""
-  }
 
-  # Example of Metadata variables available
+  # prefix should be ignored when using logStreamTemplate
+  # disable default logstreamprefix
+  # set {
+  #   name  = "cloudWatchLogs.logStreamPrefix"
+  #   value = ""
+  # }
+
+  # Example of Metadata variables available (from cloudwatch logs)
   # {
   #     "kubernetes": {
   #         "annotations": {
@@ -79,9 +75,11 @@ resource "helm_release" "fluent-bit" {
   #     "log": "2022-07-18T11:12:44.160425613Z stdout F time=\"2022-07-18T11:12:44Z\" level=error msg=\"[cloudwatch 0] Encountered error ResourceNotFoundException: The specified log stream does not exist.; detailed information: The specified log stream does not exist.\\n\""
   # }
 
+
+  # https://docs.fluentbit.io/manual/pipeline/outputs/cloudwatch#log-stream-and-group-name-templating-using-record_accessor-syntax
   set {
-    name  = "cloudWatch.logStreamName"
-    value = "$(kubernetes['namespace_name'])/$(kubernetes['pod_name'])/$(kubernetes['container_name'])"
+    name  = "cloudWatchLogs.logStreamTemplate"
+    value = "$kubernetes['namespace_name'].$kubernetes['pod_name'].$kubernetes['container_name']"
   }
 
   # exclude some pods logs (can't find the right syntax)
