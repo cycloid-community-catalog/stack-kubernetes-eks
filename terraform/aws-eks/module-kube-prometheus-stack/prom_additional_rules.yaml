@@ -1,4 +1,9 @@
 ---
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/templates/prometheus/rules-1.14
+
+# kubectl -n infra exec -it prometheus-kube-prometheus-stack-prometheus-0 sh
+# /etc/prometheus/rules/prometheus-kube-prometheus-stack-prometheus-rulefiles-0/infra-kube-prometheus-stack-node.rules-52635bd3-8500-42ed-8371-488029f34a5e.yaml
+
 # Override default for & severity
 customRules:
   KubeNodeNotReady:
@@ -15,6 +20,22 @@ customRules:
 additionalPrometheusRulesMap:
   rule-name:
     groups:
+      - name: node-exporter
+        rules:
+          - alert: NodeSystemSaturation
+            annotations:
+              description: |
+                System load per core at {{ $labels.instance }} has been above 2 for the last 15 minutes, is currently at {{ printf "%.2f" $value }}.
+                This might indicate this instance resources saturation and can cause it becoming unresponsive.
+              runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodesystemsaturation
+              summary: System saturated, load per core is very high.
+            expr: |-
+              node_load1{job="node-exporter"}
+              / count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"}) > 4
+            for: 15m
+            labels:
+              severity: warning
+
       - name: kubernetes-apps
         rules:
           - alert: KubePodNotReady

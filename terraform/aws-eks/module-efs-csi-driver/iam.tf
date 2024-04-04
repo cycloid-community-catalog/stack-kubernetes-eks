@@ -1,5 +1,5 @@
-# https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/iam-policy-example.json
-
+# https://github.com/mskanth972/aws-efs-csi-driver/blob/master/docs/iam-policy-example.json
+# https://flosell.github.io/iam-policy-json-to-terraform/
 data "aws_iam_policy_document" "efs_csi_driver" {
   statement {
     sid       = ""

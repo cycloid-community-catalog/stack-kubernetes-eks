@@ -2,6 +2,7 @@
 # Helm-release: prometheus
 ################################################################################
 
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/templates/prometheus/rules-1.14
 locals {
   service_enabled = [
     "grafana",
