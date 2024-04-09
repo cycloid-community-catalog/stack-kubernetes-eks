@@ -286,8 +286,6 @@ alertmanager:
 
   ## Configure pod disruption budgets for Alertmanager
   ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
-  ## This configuration is immutable once created and will require the PDB to be deleted to be changed
-  ## https://github.com/kubernetes/kubernetes/issues/45398
   ##
   podDisruptionBudget:
     enabled: false
@@ -558,13 +556,16 @@ alertmanager:
     ##
     type: ClusterIP
 
-  ## If true, create a serviceMonitor for alertmanager
+  ## Configuration for creating a ServiceMonitor for AlertManager
   ##
   serviceMonitor:
+    ## If true, a ServiceMonitor will be created for the AlertManager service.
+    ##
+    selfMonitor: true
+
     ## Scrape interval. If not set, the Prometheus default scrape interval is used.
     ##
     interval: ""
-    selfMonitor: true
 
     ## Additional labels
     ##
@@ -646,7 +647,7 @@ alertmanager:
     image:
       registry: quay.io
       repository: prometheus/alertmanager
-      tag: v0.26.0
+      tag: v0.27.0
       sha: ""
 
     ## If true then the user will be responsible to provide a secret with alertmanager configuration
@@ -1488,6 +1489,10 @@ kubeControllerManager:
     ##
     proxyUrl: ""
 
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
+
     jobLabel: jobLabel
     selector: {}
     #  matchLabels:
@@ -1568,6 +1573,10 @@ coreDns:
     ## proxyUrl: URL of a proxy that should be used for scraping.
     ##
     proxyUrl: ""
+
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
 
     jobLabel: jobLabel
     selector: {}
@@ -1756,6 +1765,10 @@ kubeEtcd:
     certFile: ""
     keyFile: ""
 
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
+
     jobLabel: jobLabel
     selector: {}
     #  matchLabels:
@@ -1844,6 +1857,10 @@ kubeScheduler:
     ##
     https: null
 
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
+
     jobLabel: jobLabel
     selector: {}
     #  matchLabels:
@@ -1927,6 +1944,10 @@ kubeProxy:
     ## proxyUrl: URL of a proxy that should be used for scraping.
     ##
     proxyUrl: ""
+
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
 
     jobLabel: jobLabel
     selector: {}
@@ -2043,6 +2064,10 @@ nodeExporter:
     darwin:
       enabled: true
 
+  ## ForceDeployDashboard Create dashboard configmap even if nodeExporter deployment has been disabled
+  ##
+  forceDeployDashboards: false
+
 ## Configuration for prometheus-node-exporter subchart
 ##
 prometheus-node-exporter:
@@ -2132,6 +2157,10 @@ prometheusOperator:
   ## The default value is 10, 0 will garbage-collect old replicasets ##
   revisionHistoryLimit: 10
 
+  ## Strategy of the deployment
+  ##
+  strategy: {}
+
   ## Prometheus-Operator v0.39.0 and later support TLS natively.
   ##
   tls:
@@ -2169,6 +2198,10 @@ prometheusOperator:
       ## Number of replicas
       ##
       replicas: 1
+
+      ## Strategy of the deployment
+      ##
+      strategy: {}
 
       # Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
       podDisruptionBudget: {}
@@ -2549,10 +2582,10 @@ prometheusOperator:
   ## Decrease log verbosity to errors only
   # logLevel: error
 
-  ## If true, the operator will create and maintain a service for scraping kubelets
-  ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/helm/prometheus-operator/README.md
-  ##
   kubeletService:
+    ## If true, the operator will create and maintain a service for scraping kubelets
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/helm/prometheus-operator/README.md
+    ##
     enabled: true
     namespace: kube-system
     ## Use '{{ template "kube-prometheus-stack.fullname" . }}-kubelet' by default
@@ -2561,6 +2594,10 @@ prometheusOperator:
   ## Create a servicemonitor for the operator
   ##
   serviceMonitor:
+    ## If true, create a serviceMonitor for prometheus operator
+    ##
+    selfMonitor: true
+
     ## Labels for ServiceMonitor
     additionalLabels: {}
 
@@ -2590,7 +2627,6 @@ prometheusOperator:
 
     ## Scrape timeout. If not set, the Prometheus default scrape timeout is used.
     scrapeTimeout: ""
-    selfMonitor: true
 
     ## Metric relabel configs to apply to samples before ingestion.
     ##
@@ -2769,7 +2805,7 @@ prometheusOperator:
   thanosImage:
     registry: quay.io
     repository: thanos/thanos
-    tag: v0.34.0
+    tag: v0.34.1
     sha: ""
 
   ## Set a Label Selector to filter watched prometheus and prometheusAgent
@@ -2954,6 +2990,10 @@ prometheus:
     ## To be used with a proxy extraContainer port
     targetPort: 9090
 
+    ## Port for Prometheus Reloader to listen on
+    ##
+    reloaderWebPort: 8080
+
     ## List of IP addresses at which the Prometheus server service is available
     ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
     ##
@@ -3036,8 +3076,6 @@ prometheus:
 
   ## Configure pod disruption budgets for Prometheus
   ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
-  ## This configuration is immutable once created and will require the PDB to be deleted to be changed
-  ## https://github.com/kubernetes/kubernetes/issues/45398
   ##
   podDisruptionBudget:
     enabled: false
@@ -3186,10 +3224,13 @@ prometheus:
     volumes: []
 
   serviceMonitor:
+    ## If true, create a serviceMonitor for prometheus
+    ##
+    selfMonitor: true
+
     ## Scrape interval. If not set, the Prometheus default scrape interval is used.
     ##
     interval: ""
-    selfMonitor: true
 
     ## Additional labels
     ##
@@ -3313,7 +3354,7 @@ prometheus:
     image:
       registry: quay.io
       repository: prometheus/prometheus
-      tag: v2.49.1
+      tag: v2.51.1
       sha: ""
 
     ## Tolerations for use with node taints
@@ -4135,8 +4176,6 @@ thanosRuler:
 
   ## Configure pod disruption budgets for ThanosRuler
   ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
-  ## This configuration is immutable once created and will require the PDB to be deleted to be changed
-  ## https://github.com/kubernetes/kubernetes/issues/45398
   ##
   podDisruptionBudget:
     enabled: false
@@ -4212,13 +4251,16 @@ thanosRuler:
     ##
     type: ClusterIP
 
-  ## If true, create a serviceMonitor for thanosRuler
+  ## Configuration for creating a ServiceMonitor for the ThanosRuler service
   ##
   serviceMonitor:
+    ## If true, create a serviceMonitor for thanosRuler
+    ##
+    selfMonitor: true
+
     ## Scrape interval. If not set, the Prometheus default scrape interval is used.
     ##
     interval: ""
-    selfMonitor: true
 
     ## Additional labels
     ##
@@ -4296,7 +4338,7 @@ thanosRuler:
     image:
       registry: quay.io
       repository: thanos/thanos
-      tag: v0.34.0
+      tag: v0.34.1
       sha: ""
 
     ## Namespaces to be selected for PrometheusRules discovery.

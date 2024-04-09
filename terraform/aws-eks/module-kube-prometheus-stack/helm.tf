@@ -157,7 +157,7 @@ resource "helm_release" "prometheus_community" {
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "56.14.0"
+  version    = "58.0.0"
   namespace  = var.namespace
 
   values = [

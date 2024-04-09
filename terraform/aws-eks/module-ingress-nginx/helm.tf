@@ -3,7 +3,7 @@
 ################################################################################
 # https://kubernetes.github.io/ingress-nginx/
 # https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx
-#VALUES: https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/charts/ingress-nginx/values.yaml
+# https://github.com/kubernetes/ingress-nginx/tree/main?tab=readme-ov-file#supported-versions-table
 resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
