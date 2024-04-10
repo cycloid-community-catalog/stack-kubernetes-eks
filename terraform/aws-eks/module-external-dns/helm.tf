@@ -1,5 +1,5 @@
 # https://github.com/bitnami/charts/tree/main/bitnami/external-dns
-#VALUES: https://raw.githubusercontent.com/bitnami/charts/main/bitnami/external-dns/values.yaml
+# https://github.com/bitnami/charts/tree/main/bitnami/external-dns#upgrading
 ################################################################################
 # Helm-release: external-dns
 ################################################################################
@@ -8,7 +8,7 @@ resource "helm_release" "external-dns" {
   name       = "external-dns"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "external-dns"
-  version    = "6.28.4"
+  version    = "7.1.2"
   namespace  = var.namespace
 
   values = [

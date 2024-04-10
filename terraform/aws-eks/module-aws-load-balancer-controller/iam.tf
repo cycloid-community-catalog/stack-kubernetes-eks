@@ -1,6 +1,5 @@
-# https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/main/docs/install/iam_policy.json
+# https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
 # https://flosell.github.io/iam-policy-json-to-terraform/
-
 data "aws_iam_policy_document" "aws_lb_controller" {
   statement {
     sid       = ""
@@ -44,6 +43,7 @@ data "aws_iam_policy_document" "aws_lb_controller" {
       "elasticloadbalancing:DescribeTargetGroupAttributes",
       "elasticloadbalancing:DescribeTargetHealth",
       "elasticloadbalancing:DescribeTags",
+      "elasticloadbalancing:DescribeTrustStores",
     ]
   }
 
@@ -336,6 +336,7 @@ data "aws_iam_policy_document" "aws_lb_controller_assume" {
     effect = "Allow"
   }
 }
+
 
 resource "aws_iam_role" "aws_lb_controller" {
   name               = local.service_account_name

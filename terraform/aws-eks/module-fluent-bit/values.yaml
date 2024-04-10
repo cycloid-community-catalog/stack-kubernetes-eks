@@ -19,7 +19,7 @@ podSecurityContext: {}
 #   type: RuntimeDefault
 containerSecurityContext: {}
 # allowPrivilegeEscalation: false
-# capabilities: 
+# capabilities:
 #   drop:
 #   - ALL
 
@@ -35,10 +35,10 @@ service:
     HTTP_Server  On
     HTTP_Listen  0.0.0.0
     HTTP_PORT    2020
-    Health_Check On 
-    HC_Errors_Count 5 
-    HC_Retry_Failure_Count 5 
-    HC_Period 5 
+    Health_Check On
+    HC_Errors_Count 5
+    HC_Retry_Failure_Count 5
+    HC_Period 5
 
   parsersFiles:
     - /fluent-bit/parsers/parsers.conf
@@ -56,8 +56,8 @@ input:
   memBufLimit: 5MB
   skipLongLines: "On"
   refreshInterval: 10
-  # extraInputs: |
-  #   ...
+  extraInputs: |
+    Exclude_Path /var/log/containers/*-csi-*, /var/log/containers/*fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
 
 # additionalInputs: |
 #   [INPUT]
@@ -94,7 +94,7 @@ filter:
 #       Exclude log lvl=debug*
 
 cloudWatch:
-  enabled: true
+  enabled: false
   match: "*"
   region: "us-east-1"
   logGroupName: "/aws/eks/fluentbit-cloudwatch/logs"
@@ -180,7 +180,7 @@ kinesis_streams:
   time_key_format:
   external_id:
   auto_retry_requests:
-  log_key: 
+  log_key:
 
 elasticsearch:
   enabled: false
@@ -363,7 +363,7 @@ readinessProbe: {}
   # timeoutSeconds: 10
 
 serviceMonitor:
-  service: 
+  service:
     type: ClusterIP
     port: 2020
     targetPort: 2020

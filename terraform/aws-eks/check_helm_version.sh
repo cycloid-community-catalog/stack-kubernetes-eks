@@ -10,6 +10,9 @@ if [ $# -eq 0 ]; then
   FILES=$(ls */helm*.tf)
 else
   FILES=$1
+  VERSION=$2
+
+  # $0 <foo/helm.tf> <version to get>
 fi
 
 rm /tmp/charts -rf
@@ -58,7 +61,12 @@ for helm in $FILES;do
         helm pull $chart --untar -d /tmp/charts/$chart_path 2>/dev/null
       else
         mkdir -p /tmp/charts/$chart_path
-        helm pull $chart/$chart --untar -d /tmp/charts/$chart_path 2>/dev/null
+        if [ "$VERSION" != "" ]; then
+          # Get specific version
+          helm pull $chart/$chart --version $VERSION --untar -d /tmp/charts/$chart_path 2>/dev/null
+	else
+          helm pull $chart/$chart --untar -d /tmp/charts/$chart_path 2>/dev/null
+        fi
       fi
 
       # Download the latest values file for the chart from the given URL
