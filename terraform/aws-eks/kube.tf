@@ -39,7 +39,7 @@ module "aws-load-balancer-controller" {
   organization = var.organization
   #####################################
 
-  namespace                   = kubernetes_namespace.infra.metadata.0.name
+  namespace                   = kubernetes_namespace_v1.infra.metadata.0.name
   ingress_controller_svc_name = var.ingress_controller_svc_name
 
   # used to define if we need more than 1 nginx
@@ -67,7 +67,7 @@ module "ingress-nginx" {
   organization = var.organization
   #####################################
 
-  namespace                   = kubernetes_namespace.infra.metadata.0.name
+  namespace                   = kubernetes_namespace_v1.infra.metadata.0.name
   ingress_controller_svc_name = var.ingress_controller_svc_name
 
   # used to define if we need more than 1 nginx
@@ -94,7 +94,7 @@ module "cert-manager" {
   organization = var.organization
   #####################################
 
-  namespace                        = kubernetes_namespace.infra.metadata.0.name
+  namespace                        = kubernetes_namespace_v1.infra.metadata.0.name
   service_account_name             = "cert-manager"
   aws_region                       = var.aws_region
   cluster_id                       = module.eks.cluster_name
@@ -121,7 +121,7 @@ module "external-dns" {
   organization = var.organization
   #####################################
 
-  namespace                        = kubernetes_namespace.infra.metadata.0.name
+  namespace                        = kubernetes_namespace_v1.infra.metadata.0.name
   service_account_name             = "external-dns-${var.env}"
   cluster_id                       = module.eks.cluster_name
   cluster_identity_oidc_issuer     = module.eks.oidc_provider
@@ -208,7 +208,7 @@ module "monitoring" {
   #####################################
 
   prometheus_enabled           = var.prometheus_enabled
-  namespace                    = kubernetes_namespace.infra.metadata.0.name
+  namespace                    = kubernetes_namespace_v1.infra.metadata.0.name
   storage_class_name           = module.ebs-csi-driver.storage_class_name
   prometheus_pvc_size          = var.prometheus_pvc_size
   secret_basic_auth_infra_name = var.secret_basic_auth_infra_name
@@ -229,7 +229,7 @@ module "blackbox" {
   organization = var.organization
   #####################################
 
-  namespace = kubernetes_namespace.infra.metadata.0.name
+  namespace = kubernetes_namespace_v1.infra.metadata.0.name
 }
 
 ################################################################################
@@ -248,7 +248,7 @@ module "fluent-bit" {
   #####################################
 
   fluentbit_enabled                = var.fluentbit_enabled
-  namespace                        = kubernetes_namespace.infra.metadata.0.name
+  namespace                        = kubernetes_namespace_v1.infra.metadata.0.name
   aws_region                       = var.aws_region
   cluster_name                     = module.eks.cluster_name
   cluster_identity_oidc_issuer     = module.eks.oidc_provider
@@ -269,7 +269,7 @@ module "module-metrics-server" {
   organization = var.organization
   #####################################
 
-  namespace = kubernetes_namespace.infra.metadata.0.name
+  namespace = kubernetes_namespace_v1.infra.metadata.0.name
 
   # used to define if we need more than 1 pod
   # eks_node_desired_size            = var.node_desired_size

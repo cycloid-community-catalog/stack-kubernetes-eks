@@ -2,7 +2,7 @@
 
 # Create a service LoadBalancer wich is used by aws controller to create a NLB
 # This NLB is used to redirect trafic to nginx ingress controller
-resource "kubernetes_service" "ingress-controller" {
+resource "kubernetes_service_v1" "ingress-controller" {
   metadata {
     name      = var.ingress_controller_svc_name
     namespace = var.namespace
