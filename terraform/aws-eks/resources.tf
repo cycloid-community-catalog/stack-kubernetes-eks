@@ -3,7 +3,7 @@
 ################################################################################
 
 # Namespace used to deploy infrastructure pods such as nginx controller, aws controller, prometheus ...
-resource "kubernetes_namespace" "infra" {
+resource "kubernetes_namespace_v1" "infra" {
   metadata {
     name = "infra"
     annotations = {
@@ -22,10 +22,10 @@ resource "random_password" "k8s_secret_infra_basic_auth_password" {
 }
 
 # Secret used by ingress from infra namespace to provide Basic auth
-resource "kubernetes_secret" "basic-auth-infra" {
+resource "kubernetes_secret_v1" "basic-auth-infra" {
   metadata {
     name      = var.secret_basic_auth_infra_name
-    namespace = kubernetes_namespace.infra.metadata.0.name
+    namespace = kubernetes_namespace_v1.infra.metadata.0.name
   }
 
   data = {
