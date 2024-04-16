@@ -1,7 +1,7 @@
 ################################################################################
 # Storage class definition, to be used to dynamically provisioned EBS volumes
 ################################################################################
-resource "kubernetes_storage_class" "ebs-sc" {
+resource "kubernetes_storage_class_v1" "ebs-sc" {
   metadata {
     name = var.storage_class_name
 
