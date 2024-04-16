@@ -1,4 +1,4 @@
-resource "kubernetes_storage_class" "efs-sc" {
+resource "kubernetes_storage_class_v1" "efs-sc" {
   metadata {
     name = var.storage_class_name
   }
