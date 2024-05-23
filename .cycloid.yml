@@ -1,5 +1,5 @@
 ---
-version: '2'
+version: '3'
 name: AWS EKS Cluster
 canonical: kubernetes-aws-eks
 description: |
@@ -23,8 +23,8 @@ config:
         path: pipeline/pipeline.yml
       variables:
         path: pipeline/variables-aws-eks.sample.yml
-        destination: '($ project $)/pipeline/($ environment $)/variables.yml'
+        destination: '($ .project $)/pipeline/($ .environment $)/variables.yml'
     terraform:
       eks:
         path: 'terraform/aws-eks/main.tf.sample'
-        destination: '($ project $)/terraform/($ environment $)/main.tf'
+        destination: '($ .project $)/terraform/($ .environment $)/main.tf'
