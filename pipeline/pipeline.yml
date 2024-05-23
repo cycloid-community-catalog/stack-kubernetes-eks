@@ -11,7 +11,7 @@ shared:
       type: registry-image
       source:
         repository: cycloid/cycloid-toolkit
-        tag: "((cycloid_toolkit_image))"
+        tag: "v8.3"
     run:
       path: /usr/bin/merge-stack-and-config
     outputs:
@@ -27,9 +27,9 @@ groups:
   - kubernetes-configs
   - access
 
-- name: workaround
-  jobs:
-  - kubernetes-vpccni-workaround
+# - name: workaround
+#   jobs:
+#   - kubernetes-vpccni-workaround
 
 - name: destroy
   jobs:
@@ -62,15 +62,15 @@ resources:
   type: terraform
   icon: terraform
   source:
-    env_name: ((env))
+    env_name: ($ .environment $)
     backend_type: http
     backend_config:
-      address: '($ api_url $)/inventory?jwt=($ inventory_jwt $)'
+      address: '($ .api_url $)/inventory?jwt=($ .inventory_jwt $)'
       skip_cert_verification: true
     vars:
-      env: ((env))
-      project: ((project))
-      organization: ((organization))
+      env: ($ .environment $)
+      project: ($ .project $)
+      organization: ($ .organization_canonical $)
       aws_region: ((aws_default_region))
       node_instance_type: ((node_instance_type))
       node_desired_size: ((node_desired_size))
@@ -83,14 +83,18 @@ resources:
       AWS_ACCESS_KEY_ID: ((aws_access_key))
       AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 
-# The Terraform stack (will be merged with the config)
 - name: git_stack
-  icon: github-circle
   type: git
+  icon: github-circle
   source:
-    uri: ((stack_git_repository))
-    branch: ((stack_git_branch))
-    private_key: ((stack_git_private_key))
+    uri: ($ .scs_url $)
+    branch: ($ .scs_branch $)
+    ($- if eq .scs_cred_type "basic_auth" $)
+    username: ((($ .scs_cred_path $).username))
+    password: ((($ .scs_cred_path $).password))
+    ($- else $)
+    private_key: ((($ .scs_cred_path $).ssh_key))
+    ($- end $)
     paths:
       - terraform/aws-eks/*
 
@@ -99,11 +103,16 @@ resources:
   type: git
   icon: github-circle
   source:
-    uri: ((config_git_repository))
-    branch: ((config_git_branch))
-    private_key: ((config_git_private_key))
+    uri: ($ .cr_url $)
+    branch: ($ .cr_branch $)
+    ($- if eq .cr_cred_type "basic_auth" $)
+    username: ((($ .cr_cred_path $).username))
+    password: ((($ .cr_cred_path $).password))
+    ($- else $)
+    private_key: ((($ .cr_cred_path $).ssh_key))
+    ($- end $)
     paths:
-      - ((config_terraform_path))/*
+      - ($ .project $)/terraform/($ .environment $)/*
 
 jobs:
 
@@ -204,7 +213,7 @@ jobs:
               DIR=${PWD}
 
               export AWS_DEFAULT_REGION="$(jq -r .aws_region tfstate/metadata)"
-              pip3 install awscli
+              pip3 install awscli --break-system-packages
 
               ASG_NAMES=$(aws autoscaling describe-auto-scaling-groups  --query 'AutoScalingGroups[?contains(Tags[?Key==`eks:cluster-name`].Value, `'${CLUSTER_NAME}'`)].[AutoScalingGroupName]' | jq -r .[][])
               for ASG_NAME in ${ASG_NAMES}; do
@@ -224,7 +233,7 @@ jobs:
           inputs:
           - name: tfstate
           params:
-            CLUSTER_NAME: ((project))-((env))
+            CLUSTER_NAME: ($ .project $)-($ .environment $)
             AWS_ACCESS_KEY_ID: ((aws_access_key))
             AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
             NODE_DESIRED_SIZE: ((node_desired_size))
@@ -245,10 +254,10 @@ jobs:
               DIR=${PWD}
 
               export AWS_DEFAULT_REGION="$(jq -r .aws_region tfstate/metadata)"
-              pip3 install awscli
+              pip3 install awscli --break-system-packages
               aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig  --name ${CLUSTER_NAME}
 
-              kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+              # kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
 
               # enable annotation used to monitor pod from this NS
               kubectl annotate namespace kube-system prometheus/monitoring="false" --overwrite
@@ -258,62 +267,62 @@ jobs:
           inputs:
           - name: tfstate
           params:
-            CLUSTER_NAME: ((project))-((env))
+            CLUSTER_NAME: ($ .project $)-($ .environment $)
             AWS_ACCESS_KEY_ID: ((aws_access_key))
             AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 
-- name: kubernetes-vpccni-workaround
-  serial: True
-  max_in_flight: 1
-  build_logs_to_retain: 10
-  plan:
-    - do:
-      - get: tfstate
-        trigger: false
-        passed:
-          - kubernetes-configs
-
-      - get: pipeline-first-trigger
-        trigger: true
-
-      - task: exec-cmd
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: alpine/k8s
-              tag: ((kubectl_version))
-          run:
-            path: /bin/bash
-            args:
-            - -ec
-            - |
-              DIR=${PWD}
-
-              export AWS_DEFAULT_REGION="$(jq -r .aws_region tfstate/metadata)"
-              pip3 install awscli
-              aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig  --name ${CLUSTER_NAME}
-
-              # VPC CNI is installed by aws_eks_addon. The issue is we can't congifure ENABLE_PREFIX_DELEGATION on addon
-              # https://github.com/aws/amazon-vpc-cni-k8s/issues/1571#issuecomment-895446721
-              # https://github.com/aws/containers-roadmap/issues/1333
-              # Helm release could be used but we would avoid managing it.
-              # So here is a woraround until we can set ENABLE_PREFIX_DELEGATION on addon
-              # Delete all pods created before ENABLE_PREFIX_DELEGATION defined
-              for line in $(kubectl get pod -A -o json 2> /dev/null | jq -r '.items[].metadata | "\(.namespace)/\(.name)"');do
-                pod=${line#*/}
-                ns=${line%/*}
-                echo "Delete POD: $ns / $pod"
-                kubectl -n $ns delete pod $pod
-              done
-
-          inputs:
-          - name: tfstate
-          params:
-            CLUSTER_NAME: ((project))-((env))
-            AWS_ACCESS_KEY_ID: ((aws_access_key))
-            AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+# - name: kubernetes-vpccni-workaround
+#   serial: True
+#   max_in_flight: 1
+#   build_logs_to_retain: 10
+#   plan:
+#     - do:
+#       - get: tfstate
+#         trigger: false
+#         passed:
+#           - kubernetes-configs
+#
+#       - get: pipeline-first-trigger
+#         trigger: true
+#
+#       - task: exec-cmd
+#         config:
+#           platform: linux
+#           image_resource:
+#             type: registry-image
+#             source:
+#               repository: alpine/k8s
+#               tag: ((kubectl_version))
+#           run:
+#             path: /bin/bash
+#             args:
+#             - -ec
+#             - |
+#               DIR=${PWD}
+#
+#               export AWS_DEFAULT_REGION="$(jq -r .aws_region tfstate/metadata)"
+#               pip3 install awscli --break-system-packages
+#               aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig  --name ${CLUSTER_NAME}
+#
+#               # VPC CNI is installed by aws_eks_addon. The issue is we can't congifure ENABLE_PREFIX_DELEGATION on addon
+#               # https://github.com/aws/amazon-vpc-cni-k8s/issues/1571#issuecomment-895446721
+#               # https://github.com/aws/containers-roadmap/issues/1333
+#               # Helm release could be used but we would avoid managing it.
+#               # So here is a woraround until we can set ENABLE_PREFIX_DELEGATION on addon
+#               # Delete all pods created before ENABLE_PREFIX_DELEGATION defined
+#               for line in $(kubectl get pod -A -o json 2> /dev/null | jq -r '.items[].metadata | "\(.namespace)/\(.name)"');do
+#                 pod=${line#*/}
+#                 ns=${line%/*}
+#                 echo "Delete POD: $ns / $pod"
+#                 kubectl -n $ns delete pod $pod
+#               done
+#
+#           inputs:
+#           - name: tfstate
+#           params:
+#             CLUSTER_NAME: ($ .project $)-($ .environment $)
+#             AWS_ACCESS_KEY_ID: ((aws_access_key))
+#             AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 
 # manage/display access
 - name: access
@@ -369,7 +378,7 @@ jobs:
         inputs:
         - name: tfstate
         params:
-          INFRA_NAME: ((project))-((env))
+          INFRA_NAME: ($ .project $)-($ .environment $)
 
 - name: terraform-destroy
   serial: True
@@ -419,7 +428,7 @@ jobs:
                 DIR=${PWD}
 
                 export AWS_DEFAULT_REGION="$(jq -r .aws_region tfstate/metadata)"
-                pip3 install awscli
+                pip3 install awscli --break-system-packages
                 aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig  --name ${CLUSTER_NAME}
 
                 # Delete applications namespaces
@@ -457,7 +466,7 @@ jobs:
             inputs:
             - name: tfstate
             params:
-              CLUSTER_NAME: ((project))-((env))
+              CLUSTER_NAME: ($ .project $)-($ .environment $)
               AWS_ACCESS_KEY_ID: ((aws_access_key))
               AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 

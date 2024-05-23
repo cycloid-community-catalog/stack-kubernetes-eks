@@ -3,10 +3,10 @@
 ################################################################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.8.2"
+  version = "~> 20.11.1"
 
   cluster_name    = "${var.project}-${var.env}"
-  cluster_version = "1.28"
+  cluster_version = "1.29"
 
   # extra addons required
   cluster_addons = {
@@ -21,7 +21,13 @@ module "eks" {
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html
     # If needed to update manually: https://docs.aws.amazon.com/en_us/eks/latest/userguide/managing-vpc-cni.html
     vpc-cni = {
-      # addon_version = "v1.12.0-eksbuild.1"
+      configuration_values = jsonencode({
+        env = {
+          # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
     }
   }
 
@@ -153,7 +159,7 @@ module "eks" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.5.3"
+  version = "~> 5.8.1"
 
   name = "${var.project}-${var.env}"
 
