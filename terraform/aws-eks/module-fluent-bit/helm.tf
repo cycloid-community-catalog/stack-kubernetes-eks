@@ -4,17 +4,28 @@
 # generic one: https://github.com/fluent/helm-charts
 # aws one: https://github.com/aws/eks-charts/tree/master/stable/aws-for-fluent-bit
 # https://github.com/aws/eks-charts/releases?q=fluent-bit&expanded=true
+
+locals {
+  fluentbit_config = <<EOL
+---
+input:
+  extraInputs: |
+    Exclude_Path /var/log/containers/*-csi-*, /var/log/containers/*fluent-bit*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+EOL
+}
+
 resource "helm_release" "fluent-bit" {
   count      = var.fluentbit_enabled ? 1 : 0
   name       = "aws-for-fluent-bit"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-for-fluent-bit"
-  version    = "0.1.32"
+  version    = "0.1.34"
   namespace  = var.namespace
 
   values = [
-    file("${path.module}/values.yaml")
+    local.fluentbit_config
   ]
+  # file("${path.module}/values.yaml")
 
   # enable plugins for cloudwatch
   # cloudWatchLogs.: new C high performance plugin
@@ -74,6 +85,10 @@ resource "helm_release" "fluent-bit" {
   set {
     name  = "cloudWatchLogs.autoCreateGroup"
     value = "true"
+  }
+  set {
+    name  = "cloudWatch.logRetentionDays"
+    value = var.cw_retention_in_days
   }
   set {
     name  = "cloudWatchLogs.logRetentionDays"
