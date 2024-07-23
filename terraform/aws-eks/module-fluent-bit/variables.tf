@@ -62,7 +62,7 @@ variable "cluster_identity_oidc_issuer_arn" {
 
 locals {
   # cloud watch group name
-  cw_log_group_name = "${var.cluster_name}-pods"
+  cw_log_group_name = "${var.cluster_name}"
 }
 
 variable "fluentbit_enabled" {

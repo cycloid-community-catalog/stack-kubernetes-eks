@@ -70,7 +70,7 @@ for helm in $FILES;do
       fi
 
       # Download the latest values file for the chart from the given URL
-      echo "  meld $helm_path$local_values $(ls /tmp/charts/$chart_path/*/values.yaml)"
+      echo "  meld '$helm_path$local_values' '$(ls /tmp/charts/$chart_path/*/values.yaml)'"
       echo "  vim $helm"
   fi
   echo ""

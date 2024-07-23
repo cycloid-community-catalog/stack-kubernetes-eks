@@ -39,10 +39,6 @@ resource "helm_release" "fluent-bit" {
     name  = "cloudWatchLogs.region"
     value = var.aws_region
   }
-  set {
-    name  = "cloudWatchLogs.logGroupName"
-    value = local.cw_log_group_name
-  }
 
   # prefix should be ignored when using logStreamTemplate
   # disable default logstreamprefix
@@ -75,6 +71,24 @@ resource "helm_release" "fluent-bit" {
   #     "log": "2022-07-18T11:12:44.160425613Z stdout F time=\"2022-07-18T11:12:44Z\" level=error msg=\"[cloudwatch 0] Encountered error ResourceNotFoundException: The specified log stream does not exist.; detailed information: The specified log stream does not exist.\\n\""
   # }
 
+  set {
+    name  = "cloudWatchLogs.autoCreateGroup"
+    value = "true"
+  }
+  set {
+    name  = "cloudWatchLogs.logRetentionDays"
+    value = var.cw_retention_in_days
+  }
+
+  set {
+    name  = "cloudWatchLogs.logGroupTemplate"
+    value = "${local.cw_log_group_name}-$kubernetes['namespace_name']"
+  }
+
+  set {
+    name  = "cloudWatchLogs.logStreamTemplate"
+    value = "$kubernetes['namespace_name'].$kubernetes['pod_name'].$kubernetes['container_name']"
+  }
 
   # https://docs.fluentbit.io/manual/pipeline/outputs/cloudwatch#log-stream-and-group-name-templating-using-record_accessor-syntax
   set {
