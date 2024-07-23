@@ -84,7 +84,7 @@ resource "helm_release" "fluent-bit" {
 
   set {
     name  = "cloudWatchLogs.autoCreateGroup"
-    value = "true"
+    value = true
   }
   set {
     name  = "cloudWatch.logRetentionDays"

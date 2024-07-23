@@ -11,7 +11,8 @@ data "aws_iam_policy_document" "fluent-bit" {
       "logs:PutLogEvents",
       "logs:CreateLogGroup",
       "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams"
+      "logs:DescribeLogStreams",
+      "logs:PutRetentionPolicy"
     ]
     resources = ["*"]
     effect    = "Allow"
