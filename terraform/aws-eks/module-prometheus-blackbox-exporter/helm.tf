@@ -26,8 +26,8 @@ resource "helm_release" "prometheus_blackbox" {
   #   value = true
   # }
 
-  set {
-    name  = "pspEnabled"
-    value = false
-  }
+  # set {
+  #   name  = "pspEnabled"
+  #   value = false
+  # }
 }
