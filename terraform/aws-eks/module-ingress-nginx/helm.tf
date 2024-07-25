@@ -8,12 +8,12 @@ resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version    = "4.10.1"
+  version    = "4.11.1"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
   set {
     name  = "controller.service.enabled"

@@ -1,5 +1,10 @@
 # https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
 # https://github.com/cert-manager/cert-manager/releases
+# Plugin for AWS private ACM: https://cert-manager.github.io/aws-privateca-issuer/  https://github.com/cert-manager/aws-privateca-issuer
+# ACM Private CA support for cert-manager is now available using the Private CA Kubernetes cert-manager plugin. With the plugin, you can use a highly-available, secure, managed Private CA as an issuer for your Kubernetes cluster. Learn more about the plugin:
+#     GitHub - https://github.com/cert-manager/aws-privateca-issuer/
+#     AWS tech doc - https://docs.aws.amazon.com/acm-pca/latest/userguide/PcaKubernetes.html
+
 ################################################################################
 # Helm-release: Cert-Manager
 ################################################################################
@@ -7,12 +12,12 @@ resource "helm_release" "cert_manager" {
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
-  version    = "1.14.4"
+  version    = "1.15.1"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
@@ -28,27 +33,8 @@ resource "helm_release" "cert_manager" {
     value = 1001
   }
   set {
-    name  = "installCRDs"
+    name  = "crds.enabled"
     value = true
-  }
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
   }
 
   depends_on = [

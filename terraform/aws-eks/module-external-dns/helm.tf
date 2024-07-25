@@ -8,7 +8,7 @@ resource "helm_release" "external-dns" {
   name       = "external-dns"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "external-dns"
-  version    = "7.1.2"
+  version    = "8.3.3"
   namespace  = var.namespace
 
   values = [
@@ -66,26 +66,6 @@ resource "helm_release" "external-dns" {
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.external_dns.arn
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
   }
 
 }

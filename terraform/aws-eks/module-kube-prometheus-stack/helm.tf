@@ -62,6 +62,8 @@ locals {
     "NodeClockNotSynchronising",
     "NodeRAIDDegraded",
     "NodeRAIDDiskFailure",
+    "NodeMemoryHighUtilization",
+    "NodeSystemSaturation",
     "PrometheusTSDBReloadsFailing",
     "PrometheusTSDBCompactionsFailing",
     "PrometheusNotIngestingSamples",
@@ -80,7 +82,6 @@ locals {
     "InfoInhibitor",
     "Watchdog"
   ]
-
 
   # otheride default rules to change the for and severity
   # Add: * on (namespace) group_left() kube_namespace_annotations{annotation_prometheus_monitoring="true"}
@@ -157,11 +158,11 @@ resource "helm_release" "prometheus_community" {
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "58.0.0"
+  version    = "61.3.2"
   namespace  = var.namespace
 
+  # file("${path.module}/values.yaml"),
   values = [
-    file("${path.module}/values.yaml"),
     local.prom_additional_rules,
     local.prom_additional_scrape_configs,
   ]
@@ -225,6 +226,14 @@ resource "helm_release" "prometheus_community" {
     content {
       name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/auth-secret-type"
       value = "auth-map"
+    }
+  }
+  dynamic "set" {
+    for_each = toset(local.service_enabled)
+    content {
+      name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/force-ssl-redirect"
+      value = "true"
+      type  = "string"
     }
   }
 
@@ -313,48 +322,6 @@ resource "helm_release" "prometheus_community" {
   #   value = "error"
   # }
 
-  set {
-    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "prometheus.prometheusSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
-
-
-  set {
-    name  = "prometheus.prometheusOperator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "prometheus.prometheusOperator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "prometheus.prometheusOperator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "prometheus.prometheusOperator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
-
-
 
   ########################
   # Grafana              #
@@ -370,49 +337,9 @@ resource "helm_release" "prometheus_community" {
     value = random_password.password.result
   }
 
-  set {
-    name  = "grafana.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "grafana.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "grafana.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "grafana.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
-
   ########################
   # Alertmanager         #
   ########################
-
-  set {
-    name  = "alertmanager.alertmanagerSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "alertmanager.alertmanagerSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "alertmanager.alertmanagerSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "alertmanager.alertmanagerSpec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
 
   ########################
   # kube-state-metrics   #

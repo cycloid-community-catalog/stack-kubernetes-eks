@@ -5,7 +5,7 @@ resource "helm_release" "efs_csi_driver" {
   name       = "aws-efs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver/"
   chart      = "aws-efs-csi-driver"
-  version    = "2.5.7"
+  version    = "3.0.6"
   namespace  = var.namespace
 
   set {
@@ -41,7 +41,7 @@ resource "helm_release" "efs_csi_driver" {
     value = var.eks_node_desired_size > 1 ? 2 : 1
   }
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 }

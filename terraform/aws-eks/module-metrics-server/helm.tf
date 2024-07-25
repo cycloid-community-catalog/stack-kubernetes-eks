@@ -14,31 +14,12 @@ resource "helm_release" "metrics_server" {
   version    = "3.12.1"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
   # set {
   #   name  = "replicas"
   #   value = var.eks_node_desired_size > 1 ? 2 : 1
   # }
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
 }

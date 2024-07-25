@@ -7,12 +7,12 @@ resource "helm_release" "prometheus_blackbox" {
   name       = "prometheus-blackbox-exporter"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "prometheus-blackbox-exporter"
-  version    = "8.13.0"
+  version    = "8.17.0"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
 
   # Fix the service name
@@ -27,23 +27,7 @@ resource "helm_release" "prometheus_blackbox" {
   # }
 
   set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
-    value = "100"
+    name  = "pspEnabled"
+    value = false
   }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"
-    value = "node.type"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator"
-    value = "In"
-  }
-
-  set {
-    name  = "affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]"
-    value = "infra"
-  }
-
 }

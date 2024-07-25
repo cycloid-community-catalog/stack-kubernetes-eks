@@ -8,12 +8,12 @@ resource "helm_release" "ebs_csi_driver" {
   name       = "aws-ebs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver/"
   chart      = "aws-ebs-csi-driver"
-  version    = "2.29.1"
+  version    = "2.33.0"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
   # set controller plugin count to deploy (one per node)
   set {
