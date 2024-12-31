@@ -12,6 +12,11 @@ else
   FILES=$1
   VERSION=$2
 
+  # only check 1 dir such staging
+  if [[ ! $FILES == *.tf ]]; then
+    FILES=$(ls $1/*/helm*.tf)
+  fi
+
   # $0 <foo/helm.tf> <version to get>
 fi
 
@@ -32,7 +37,10 @@ for helm in $FILES;do
   version=$(grep -E "^[ ]+version[^=:alpha:]+=" $helm | head -n1 | awk '{print $3}' | sed 's/"//g')
   #values_path=$(grep -E "#VALUES: " $helm | awk '{print $2}')
   local_values=$(grep -E "file.*values([-_]?.*)?.yaml" $helm | sed 's/.*\///;s/\.yaml.*/\.yaml/')
-
+  echo $local_values
+  if [ "$local_values" == "" ]; then
+    local_values="values.yaml"
+  fi
   # Print the chart details
   echo -e "${Yellow}  Chart:${NC} $chart"
   echo -e "${Yellow}  Repository:${NC} $repository"
@@ -40,7 +48,7 @@ for helm in $FILES;do
 
   if [ "$(echo $chart | grep ^oci:)" != "" ]; then
     # OCI repo doesn't support search yet (https://github.com/helm/helm/issues/11000)
-    latest_version=$(helm show chart $chart 2>/dev/null | grep version: | awk '{print $2}')
+    latest_version=$(helm show chart $chart 2>/dev/null | grep version: | tail -n1 | awk '{print $2}')
   else
     # Add the chart repository and get the latest version of the chart from the repository
     helm repo add $chart $repository > /dev/null 2>&1

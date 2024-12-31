@@ -1,11 +1,11 @@
 # https://github.com/kubernetes-sigs/aws-efs-csi-driver/tree/master/charts/aws-efs-csi-driver
 # https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/charts/aws-efs-csi-driver/CHANGELOG.md
-# https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/CHANGELOG-1.x.md
+# https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/CHANGELOG-2.x.md
 resource "helm_release" "efs_csi_driver" {
   name       = "aws-efs-csi-driver"
   repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver/"
   chart      = "aws-efs-csi-driver"
-  version    = "3.0.6"
+  version    = "3.1.4"
   namespace  = var.namespace
 
   set {
@@ -37,7 +37,7 @@ resource "helm_release" "efs_csi_driver" {
   }
 
   set {
-    name  = "replicaCount"
+    name  = "controller.replicaCount"
     value = var.eks_node_desired_size > 1 ? 2 : 1
   }
 

@@ -6,14 +6,13 @@
 
 resource "helm_release" "external-dns" {
   name       = "external-dns"
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "external-dns"
-  version    = "8.3.3"
+  chart     = "oci://registry-1.docker.io/bitnamicharts/external-dns"
+  version    = "8.7.1"
   namespace  = var.namespace
 
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  # values = [
+  #   file("${path.module}/values.yaml")
+  # ]
 
   set {
     name  = "provider"

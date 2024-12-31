@@ -8,7 +8,7 @@ resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version    = "4.11.1"
+  version    = "4.12.0"
   namespace  = var.namespace
 
   # values = [
@@ -28,6 +28,19 @@ resource "helm_release" "ingress_nginx" {
   set {
     name  = "controller.config.enable-real-ip"
     value = "true"
+  }
+
+  set {
+    name  = "controller.config.proxy-read-timeout"
+    value = "1800"
+  }
+  set {
+    name  = "controller.config.proxy-connect-timeout"
+    value = "1800"
+  }
+  set {
+    name  = "controller.config.proxy-send-timeout"
+    value = "1800"
   }
 
   # other possible config

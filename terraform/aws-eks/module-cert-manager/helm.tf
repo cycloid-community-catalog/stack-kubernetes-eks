@@ -1,5 +1,6 @@
 # https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
-# https://github.com/cert-manager/cert-manager/releases
+# changelog: https://github.com/cert-manager/cert-manager/releases
+# support version: https://cert-manager.io/docs/releases/#currently-supported-releases
 # Plugin for AWS private ACM: https://cert-manager.github.io/aws-privateca-issuer/  https://github.com/cert-manager/aws-privateca-issuer
 # ACM Private CA support for cert-manager is now available using the Private CA Kubernetes cert-manager plugin. With the plugin, you can use a highly-available, secure, managed Private CA as an issuer for your Kubernetes cluster. Learn more about the plugin:
 #     GitHub - https://github.com/cert-manager/aws-privateca-issuer/
@@ -12,7 +13,7 @@ resource "helm_release" "cert_manager" {
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
-  version    = "1.15.1"
+  version    = "1.16.2"
   namespace  = var.namespace
 
   # values = [

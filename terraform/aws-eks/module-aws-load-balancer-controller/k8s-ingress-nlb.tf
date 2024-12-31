@@ -1,5 +1,5 @@
-# https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/service/annotations/
-
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/service/annotations/
+# https://kubernetes.io/docs/concepts/services-networking/service/
 # Create a service LoadBalancer wich is used by aws controller to create a NLB
 # This NLB is used to redirect trafic to nginx ingress controller
 resource "kubernetes_service_v1" "ingress-controller" {
@@ -16,6 +16,8 @@ resource "kubernetes_service_v1" "ingress-controller" {
       "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"                  = "tcp"
       "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
       # "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"                    = "*"
+      "service.beta.kubernetes.io/aws-load-balancer-listener-attributes.TCP-80"  = "tcp.idle_timeout.seconds=600"
+      "service.beta.kubernetes.io/aws-load-balancer-listener-attributes.TCP-443" = "tcp.idle_timeout.seconds=600"
     }
   }
   spec {

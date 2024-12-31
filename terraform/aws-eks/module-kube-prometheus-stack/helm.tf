@@ -153,12 +153,13 @@ EOL
 #oncall_alertnamager_cred.password
 
 # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#upgrading-an-existing-release-to-a-new-major-version
 resource "helm_release" "prometheus_community" {
   count      = var.prometheus_enabled ? 1 : 0
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "61.3.2"
+  version    = "67.5.0"
   namespace  = var.namespace
 
   # file("${path.module}/values.yaml"),
