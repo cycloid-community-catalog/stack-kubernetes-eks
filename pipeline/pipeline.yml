@@ -51,11 +51,11 @@ resource_types:
     tag: latest
 
 resources:
-# Workaround to trigger job only once when pipeline created
-- name: pipeline-first-trigger
-  type: static
-  source:
-    message: "pipeline first trigger"
+# # Workaround to trigger job only once when pipeline created
+# - name: pipeline-first-trigger
+#   type: static
+#   source:
+#     message: "pipeline first trigger"
 
 # the infrastucture tfstate stored in s3
 - name: tfstate
