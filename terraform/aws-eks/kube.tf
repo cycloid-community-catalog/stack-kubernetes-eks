@@ -13,9 +13,19 @@ resource "time_sleep" "wait_eks_destroy" {
 # https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/modules/aws-auth
 ################################################################################
 # Configmap is use to make a link between iam role and k8s cluster role
+
+# Wait few minutes after EKS cluster is created to ensure aws-auth configmap is created
+resource "time_sleep" "wait_eks" {
+  depends_on      = [module.eks]
+  create_duration = "1m"
+}
+
 module "eks-auth" {
+  depends_on = [
+    time_sleep.wait_eks
+  ]
   source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "~> 20.0"
+  version = "~> 20.31.6"
 
   # Creates aws-auth configmap - to enable acces to cluster using IAM
   manage_aws_auth_configmap = true
@@ -156,7 +166,8 @@ module "ebs-csi-driver" {
   cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
 
   depends_on = [
-    time_sleep.wait_eks_destroy
+    time_sleep.wait_eks_destroy,
+    module.eks-auth
   ]
 }
 
@@ -177,7 +188,8 @@ module "efs-csi-driver" {
   cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
 
   depends_on = [
-    time_sleep.wait_eks_destroy
+    time_sleep.wait_eks_destroy,
+    module.eks-auth
   ]
 }
 
