@@ -42,7 +42,7 @@ resource "helm_release" "fluent-bit" {
   }
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.fluent-bit.arn
+    value = aws_iam_role.fluent-bit[0].arn
   }
 
   # configure cloudwatch
