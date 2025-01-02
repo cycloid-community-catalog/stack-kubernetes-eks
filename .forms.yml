@@ -2,29 +2,12 @@
 # Stackforms: documentation at https://docs.cycloid.io/deploy/stackforms/feature.html
 ################################################################################
 
-# YAML anchors
-shared:
-- &global
-  name: Global
-  groups:
-  - name: Global
-    technologies: [pipeline]
-    vars:
-    - name: Display advanced options
-      description: Check to see advanced options to configure your project.
-      key: advanced_opt
-      widget: switch
-      type: boolean
-      default: false
-
-version: "2"
 use_cases:
-- name: cycloid-common
+- name: aws_eks
   sections:
-  - name: Advanced (optional)
+  - name: Cloud Provider Access
     groups:
     - name: Terraform
-      condition: advanced_opt==true
       technologies: [pipeline]
       vars:
         - name: "AWS access key"
@@ -51,10 +34,6 @@ use_cases:
           widget: simple_text
           type: string
           default: "1.10.0"
-
-- name: aws_eks
-  sections:
-  - *global
 
   - name: EKS control plane
     groups:
