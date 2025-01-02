@@ -138,7 +138,7 @@ jobs:
           - name: git_stack
             path: "stack"
         params:
-          CONFIG_PATH: ($ project $)/terraform/($ environment $)
+          CONFIG_PATH: ($ .project $)/terraform/($ .environment $)
           STACK_PATH: terraform/aws-eks
 
       - put: tfstate
@@ -174,7 +174,7 @@ jobs:
           - name: git_stack
             path: "stack"
         params:
-          CONFIG_PATH: ($ project $)/terraform/($ environment $)
+          CONFIG_PATH: ($ .project $)/terraform/($ .environment $)
           STACK_PATH: terraform/aws-eks
 
       - put: tfstate
@@ -409,7 +409,7 @@ jobs:
             - name: git_stack
               path: "stack"
           params:
-            CONFIG_PATH: ($ project $)/terraform/($ environment $)
+            CONFIG_PATH: ($ .project $)/terraform/($ .environment $)
             STACK_PATH: terraform/aws-eks
 
         - task: remove-k8s-dependencies
