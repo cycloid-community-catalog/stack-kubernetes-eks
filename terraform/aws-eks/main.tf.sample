@@ -7,7 +7,7 @@ module "eks" {
   version = "~> 20.31.6"
 
   cluster_name    = "${var.project}-${var.env}"
-  cluster_version = "1.29"
+  cluster_version = "1.31"
 
   # extra addons required
   cluster_addons = {

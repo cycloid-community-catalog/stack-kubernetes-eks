@@ -20,11 +20,6 @@ resource "time_sleep" "wait_eks" {
   create_duration = "1m"
 }
 
-# # Wait NLB, makes sure it is created
-# resource "time_sleep" "wait_nlb" {
-#   depends_on      = [module.aws-load-balancer-controller]
-#   create_duration = "1m"
-# }
 
 module "eks-auth" {
   depends_on = [

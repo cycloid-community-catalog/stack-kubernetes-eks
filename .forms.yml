@@ -33,7 +33,7 @@ use_cases:
           key: terraform_version
           widget: simple_text
           type: string
-          default: "1.10.0"
+          default: "1.10.3"
 
   - name: EKS control plane
     groups:
@@ -45,7 +45,7 @@ use_cases:
         key: module.eks.cluster_version
         widget: simple_text
         type: string
-        default: "1.29"
+        default: "1.31"
 
     - name: VPC
       technologies: [pipeline]
@@ -65,7 +65,7 @@ use_cases:
         key: kubectl_version
         widget: simple_text
         type: string
-        default: "1.29.2"
+        default: "1.31.4"
       - name: "EKS Node type"
         description: "Type of Aws EC2 instance for nodes. (Should change on **prod**)"
         key: node_instance_type
