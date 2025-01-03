@@ -20,11 +20,11 @@ resource "time_sleep" "wait_eks" {
   create_duration = "1m"
 }
 
-# Wait NLB, makes sure it is created
-resource "time_sleep" "wait_nlb" {
-  depends_on      = [module.aws-load-balancer-controller]
-  create_duration = "1m"
-}
+# # Wait NLB, makes sure it is created
+# resource "time_sleep" "wait_nlb" {
+#   depends_on      = [module.aws-load-balancer-controller]
+#   create_duration = "1m"
+# }
 
 module "eks-auth" {
   depends_on = [
@@ -91,8 +91,7 @@ module "ingress-nginx" {
 
   # eks_managed_node_groups_autoscaling_group_names = module.eks.eks_managed_node_groups_autoscaling_group_names
   depends_on = [
-    module.aws-load-balancer-controller,
-    time_sleep.wait_nlb
+    module.aws-load-balancer-controller
   ]
 }
 
@@ -121,7 +120,8 @@ module "cert-manager" {
 
   depends_on = [
     module.eks,
-    time_sleep.wait_nlb
+    module.ingress-nginx,
+    module.aws-load-balancer-controller
   ]
 }
 
