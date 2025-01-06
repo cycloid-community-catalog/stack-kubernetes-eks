@@ -20,6 +20,35 @@ else
   # $0 <foo/helm.tf> <version to get>
 fi
 
+#
+# Check TF module #
+#
+echo -e "${Blue}Terraform modules"
+
+# Check EKS module
+TERRAFORM_MODULES=$(curl -s https://api.github.com/repos/terraform-aws-modules/terraform-aws-eks/releases/latest | jq -r '.tag_name')
+echo -e "${Yellow}  terraform-aws-modules/eks module:${NC}"
+for tffile in $(grep -rn -E "source.*terraform-aws-modules/eks" . | grep -v \.sh| sed 's/:.*//'| awk '{print $1}');do
+  tffile_version=$(grep -E "source.*terraform-aws-modules/eks" $tffile -A1 | grep version | sed -E 's/[^0-9]+([0-9][0-9\.]+).*/\1/')
+  if [ "v$tffile_version" != "$TERRAFORM_MODULES" ]; then
+    echo -e "${RED}    found in $tffile: $tffile_version vs $TERRAFORM_MODULES ${NC}"
+  else
+    echo -e "${NC}    found in $tffile: $tffile_version vs $TERRAFORM_MODULES ${NC}"
+  fi
+done
+
+# Check VPC module
+TERRAFORM_MODULES=$(curl -s https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/releases/latest | jq -r '.tag_name')
+echo -e "${Yellow}  terraform-aws-modules/vpc module:${NC}"
+for tffile in $(grep -rn -E "source.*terraform-aws-modules/vpc" . | grep -v \.sh | sed 's/:.*//'| awk '{print $1}');do
+  tffile_version=$(grep -E "source.*terraform-aws-modules/vpc" $tffile -A1 | grep version | sed -E 's/[^0-9]+([0-9][0-9\.]+).*/\1/')
+  if [ "v$tffile_version" != "$TERRAFORM_MODULES" ]; then
+    echo -e "${RED}    found in $tffile: $tffile_version vs $TERRAFORM_MODULES ${NC}"
+  else
+    echo -e "${NC}    found in $tffile: $tffile_version vs $TERRAFORM_MODULES ${NC}"
+  fi
+done
+
 rm /tmp/charts -rf
 # clean repo
 # for i in $(helm repo list | awk '{print $1}');do helm repo remove $i;done
