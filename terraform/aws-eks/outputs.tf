@@ -63,6 +63,10 @@ output "cluster_version" {
   description = "The Kubernetes version for the cluster."
 }
 
+output "cluster_iam_role_name" {
+  value = module.eks.cluster_iam_role_name
+}
+
 output "eks_managed_node_groups_autoscaling_group_names" {
   value       = module.eks.eks_managed_node_groups_autoscaling_group_names
   description = "List of the autoscaling group names created by EKS managed node groups"
@@ -165,4 +169,8 @@ output "k8s_secret_infra_basic_auth_password" {
 output "monitoring_access" {
   value     = try(module.monitoring.monitoring_access, "")
   sensitive = true
+}
+
+output "managed_domain" {
+  value = var.managed_domain
 }

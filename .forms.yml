@@ -123,3 +123,9 @@ use_cases:
         widget: switch
         type: boolean
         default: false
+      - name: "Managed Domain"
+        description: "Route53 Zone used by external-dns and cert-manager."
+        key: managed_domain
+        widget: simple_text
+        type: string
+        default: "cycloid.io"

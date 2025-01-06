@@ -79,6 +79,7 @@ resources:
       node_disk_size: ((node_disk_size))
       prometheus_enabled: ((prometheus_enabled))
       fluentbit_enabled: ((fluentbit_enabled))
+      managed_domain: ((managed_domain))
     env:
       AWS_ACCESS_KEY_ID: ((aws_access_key))
       AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
