@@ -21,7 +21,19 @@ else
 fi
 
 #
-# Check TF module #
+# Terraform
+#
+
+LATEST_TERRAFORM_VERSION=$(curl -s 'https://hub.docker.com/v2/repositories/cycloid/terraform-resource/tags/?page_size=100' | \
+  jq -r '.results[].name' | \
+  grep '^1\.' | \
+  sort -V | \
+  tail -n 1)
+
+echo -e "${Blue}Latest cycloid/terraform-resource available:${NC} $LATEST_TERRAFORM_VERSION"
+
+#
+# Terraform module
 #
 echo -e "${Blue}Terraform modules"
 
