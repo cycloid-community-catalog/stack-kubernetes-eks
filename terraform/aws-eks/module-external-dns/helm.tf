@@ -1,13 +1,13 @@
-# https://github.com/bitnami/charts/tree/main/bitnami/external-dns
-# https://github.com/bitnami/charts/tree/main/bitnami/external-dns#upgrading
+# https://github.com/kubernetes-sigs/external-dns/tree/master/charts/external-dns
 ################################################################################
 # Helm-release: external-dns
 ################################################################################
 
 resource "helm_release" "external-dns" {
   name       = "external-dns"
-  chart     = "oci://registry-1.docker.io/bitnamicharts/external-dns"
-  version    = "8.7.1"
+  repository = "https://kubernetes-sigs.github.io/external-dns/"
+  chart      = "external-dns"
+  version    = "1.18.0"
   namespace  = var.namespace
 
   # values = [
@@ -15,13 +15,20 @@ resource "helm_release" "external-dns" {
   # ]
 
   set {
-    name  = "provider"
+    name  = "provider.name"
     value = "aws"
   }
 
+  # Each record created by external-dns is accompanied by the TXT record, which internally stores the external-dns identifier.
   set {
-    name  = "domainFilters[0]"
-    value = var.managed_domain
+    name  = "registry"
+    value = "txt"
+  }
+
+  # TXT registry identifier.
+  set {
+    name  = "txtOwnerId"
+    value = var.cluster_id
   }
 
   # Verbosity of the logs, available values are: panic, debug, info, warning, error, fatal.
@@ -36,25 +43,19 @@ resource "helm_release" "external-dns" {
     value = "sync"
   }
 
-  # Each record created by external-dns is accompanied by the TXT record, which internally stores the external-dns identifier.
-  set {
-    name  = "registry"
-    value = "txt"
-  }
-  # TXT registry identifier.
-  set {
-    name  = "txtOwnerId"
-    value = var.cluster_id
-  }
-
   set {
     name  = "interval"
     value = "1m"
   }
 
   set {
-    name  = "rbac.create"
-    value = "true"
+    name  = "domainFilters[0]"
+    value = "phrasea.io"
+  }
+
+  set {
+    name  = "domainFilters[1]"
+    value = "alchemyasp.com"
   }
 
   # pod permissions to access route53
@@ -67,4 +68,8 @@ resource "helm_release" "external-dns" {
     value = aws_iam_role.external_dns.arn
   }
 
+  set {
+    name  = "rbac.create"
+    value = "true"
+  }
 }
