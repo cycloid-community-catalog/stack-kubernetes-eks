@@ -10,14 +10,6 @@ locals {
     "alertmanager"
   ]
 
-  # "alertmanager",
-  service_disabled = [
-    "kubeControllerManager",
-    "KubeScheduler"
-  ]
-
-  scrapping_disabled = ["kubeDns", "kubeEtcd", "kubeProxy"]
-
   rules_disabled = [
     "etcd",
     "configReloaders",
@@ -108,7 +100,7 @@ prometheus:
             action: keep
             regex: true
 
-          # check the ingress schema/url/path
+          # check the ingress schema/url/path (default all)
           - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
             regex: (.+);(.+);(.+)
             replacement: $${1}://$${2}$${3}
@@ -125,7 +117,7 @@ prometheus:
           - action: labelmap
             regex: __meta_kubernetes_ingress_label_(.+)
           - source_labels: [__meta_kubernetes_namespace]
-            target_label: kubernetes_namespace
+            target_label: namespace
           - source_labels: [__meta_kubernetes_ingress_name]
             target_label: kubernetes_name
 
@@ -148,7 +140,151 @@ EOL
 
   # prom_additional_alertmanager_config = var.oncall_enabled ? local.prom_additional_alertmanager_config_default : ""
 
+  # compose the main values map used by helm_release
+  global_values = {
+    ########################
+    # kube-state-metrics   #
+    ########################
+    # In order to get annotations on kube_namespace_annotations metrics, we need to allow it on kube-state-metrics
+    # https://github.com/kubernetes/kube-state-metrics/issues/1582
+    kubeStateMetrics = {
+      enabled                    = true
+      metricAnnotationsAllowList = ["namespaces=[*]"]
+    }
+
+    ########################
+    # Grafana              #
+    ########################
+    grafana = {
+      enabled                   = contains(local.service_enabled, "grafana")
+      defaultDashboardsTimezone = "Europe/Paris"
+      # Set a basic auth on prometheus ingress
+      ingress = {
+        enabled = contains(local.service_enabled, "grafana")
+        hosts = [
+          "grafana.${var.project}-${var.env}.phrasea.io"
+        ]
+        annotations = {
+          "nginx.ingress.kubernetes.io/auth-type"          = "basic"
+          "nginx.ingress.kubernetes.io/auth-secret"        = var.secret_basic_auth_infra_name
+          "nginx.ingress.kubernetes.io/auth-secret-type"   = "auth-map"
+          "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+        }
+      }
+    }
+
+    ########################
+    # Prometheus           #
+    ########################
+    prometheus = {
+      enabled = contains(local.service_enabled, "prometheus")
+      ingress = {
+        enabled = contains(local.service_enabled, "prometheus")
+        hosts = [
+          "prometheus.${var.project}-${var.env}.phrasea.io"
+        ]
+        annotations = {
+          "nginx.ingress.kubernetes.io/auth-type"          = "basic"
+          "nginx.ingress.kubernetes.io/auth-secret"        = var.secret_basic_auth_infra_name
+          "nginx.ingress.kubernetes.io/auth-secret-type"   = "auth-map"
+          "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+        }
+      }
+
+      prometheusSpec = {
+        storageSpec = {
+          volumeClaimTemplate = {
+            # Prometheus server data Persistent Volume config
+            # change default pv name because because pvc can't be changed
+            metadata = { name = "prometheus" }
+            spec = {
+              resources        = { requests = { storage = "1Gi" } }
+              storageClassName = kubernetes_storage_class_v1.efs.id
+              accessModes      = ["ReadWriteOnce"]
+            }
+          }
+        }
+        retention = "40d"
+        externalLabels = {
+          customer = "alchemy"
+          env      = var.env
+          project  = var.project
+          receiver = "on_call"
+        }
+
+        nodeSelector = {
+          infra = "true"
+        }
+      }
+    }
+
+    ########################
+    # Alertmanager         #
+    ########################
+    alertmanager = {
+      enabled = contains(local.service_enabled, "alertmanager")
+      ingress = {
+        enabled = contains(local.service_enabled, "alertmanager")
+        hosts = [
+          "alertmanager.${var.project}-${var.env}.phrasea.io"
+        ]
+        annotations = {
+          "nginx.ingress.kubernetes.io/auth-type"          = "basic"
+          "nginx.ingress.kubernetes.io/auth-secret"        = var.secret_basic_auth_infra_name
+          "nginx.ingress.kubernetes.io/auth-secret-type"   = "auth-map"
+          "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+        }
+      }
+    }
+
+    # disable specific default rules globally
+    defaultRules = {
+      # Disable monitoring rule
+      # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/templates/prometheus/rules-1.14
+      rules = { for r in local.rules_disabled : r => false }
+      # Disable specific Alert from rules
+      # Usefull if alert not used or overrided
+      disabled = { for a in local.alerts_disabled : a => true }
+    }
+
+    # disable specific scrapers
+    # chart expects service names lowerCamelCase for many components: adapt as needed
+    kubeControllerManager = { enabled = false }
+    kubeScheduler         = { enabled = false }
+    kubeDns               = { enabled = false }
+    kubeEtcd              = { enabled = false }
+    kubeProxy             = { enabled = false }
+
+    # other labels
+    commonLabels = {
+      project   = var.project
+      env       = var.env
+      component = "eks"
+    }
+
+    # Add any extra raw YAML blobs you had
+    additionalPrometheusRules = local.prom_additional_rules != "" ? local.prom_additional_rules : null
+
+    # Add alertmanager extra config via file if oncall enabled
+    additionalAlertmanagerConfigs = var.oncall_enabled ? local.prom_additional_alertmanager_config : null
+
+    # example secret mounts or other chart values you used previously
+    # secretMounts example if the chart supports it:
+    secretMounts = [
+      {
+        name       = "elastic-certs"
+        secretName = "cost-explorer-es-cert"
+        path       = "/ssl"
+      }
+    ]
+
+    # any other overrides you had as a set can be mapped here similarly...
+    }
+  )
 }
+
+# prom_additional_alertmanager_config = var.oncall_enabled ? local.prom_additional_alertmanager_config_default : ""
+
 #oncall_alertnamager_cred.username
 #oncall_alertnamager_cred.password
 
@@ -159,11 +295,12 @@ resource "helm_release" "prometheus_community" {
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "67.5.0"
+  version    = "67.8.0"
   namespace  = var.namespace
 
   # file("${path.module}/values.yaml"),
   values = [
+    local.global_values,
     local.prom_additional_rules,
     local.prom_additional_scrape_configs,
   ]
@@ -174,69 +311,7 @@ resource "helm_release" "prometheus_community" {
   # Global/Services      #
   ########################
   # service_disabled
-  dynamic "set" {
-    for_each = toset(local.service_disabled)
-    content {
-      name  = "${set.key}.enabled"
-      value = false
-    }
-  }
 
-  # enable
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.enabled"
-      value = true
-    }
-  }
-
-  # ingress
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.enabled"
-      value = true
-    }
-  }
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.hosts[0]"
-      value = "${set.key}.${var.project}-${var.env}.phrasea.io"
-    }
-  }
-
-  # Set a basic auth on prometheus ingress
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/auth-type"
-      value = "basic"
-    }
-  }
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/auth-secret"
-      value = var.secret_basic_auth_infra_name
-    }
-  }
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/auth-secret-type"
-      value = "auth-map"
-    }
-  }
-  dynamic "set" {
-    for_each = toset(local.service_enabled)
-    content {
-      name  = "${set.key}.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/force-ssl-redirect"
-      value = "true"
-      type  = "string"
-    }
-  }
 
   # Can't be set here due to issue with
   # │ Error: template: kube-prometheus-stack/charts/grafana/templates/ingress.yaml:23:23: executing "kube-prometheus-stack/charts/grafana/templates/ingress.yaml" at <$value>: wrong type for value; expected string; got bool
@@ -248,76 +323,6 @@ resource "helm_release" "prometheus_community" {
   #   }
   # }
 
-  # Disable monitoring rule
-  # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/templates/prometheus/rules-1.14
-  dynamic "set" {
-    for_each = toset(local.rules_disabled)
-    content {
-      name  = "defaultRules.rules.${set.key}"
-      value = false
-    }
-  }
-
-  # Disable specific Alert from rules
-  # Usefull if alert not used or overrided
-  dynamic "set" {
-    for_each = toset(local.alerts_disabled)
-    content {
-      name  = "defaultRules.disabled.${set.key}"
-      value = true
-    }
-  }
-
-  dynamic "set" {
-    for_each = toset(local.scrapping_disabled)
-    content {
-      name  = "${set.key}.enabled"
-      value = false
-    }
-  }
-
-
-  ########################
-  # Prometheus           #
-  ########################
-
-  # Prometheus server data Persistent Volume config
-  set {
-    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
-    value = "${var.prometheus_pvc_size}Gi"
-  }
-  set {
-    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
-    value = var.storage_class_name
-  }
-  set {
-    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes[0]"
-    value = "ReadWriteOnce"
-  }
-
-  # Prometheus data retention period
-  set {
-    name  = "prometheus.prometheusSpec.retention"
-    value = "40d"
-  }
-
-  set {
-    name  = "prometheus.prometheusSpec.externalLabels.customer"
-    value = var.organization
-  }
-  set {
-    name  = "prometheus.prometheusSpec.externalLabels.env"
-    value = var.env
-  }
-  set {
-    name  = "prometheus.prometheusSpec.externalLabels.project"
-    value = var.project
-  }
-  set {
-    name  = "prometheus.prometheusSpec.externalLabels.receiver"
-    value = "on_call"
-  }
-
   # set {
   #   name  = "prometheus.prometheusSpec.logLevel"
   #   value = "error"
@@ -328,28 +333,10 @@ resource "helm_release" "prometheus_community" {
   # Grafana              #
   ########################
 
-  set {
-    name  = "grafana.defaultDashboardsTimezone"
-    value = "Europe/Paris"
-  }
-
-  set_sensitive {
-    name  = "grafana.adminPassword"
-    value = random_password.password.result
-  }
-
-  ########################
-  # Alertmanager         #
-  ########################
-
-  ########################
-  # kube-state-metrics   #
-  ########################
-  # In order to get annotations on kube_namespace_annotations metrics, we need to allow it on kube-state-metrics
-  # https://github.com/kubernetes/kube-state-metrics/issues/1582
-  set {
-    name  = "kube-state-metrics.metricAnnotationsAllowList[0]"
-    value = "namespaces=[*]"
-  }
-
+  set_sensitive = [
+    {
+      name  = "grafana.adminPassword"
+      value = random_password.password.result
+    }
+  ]
 }

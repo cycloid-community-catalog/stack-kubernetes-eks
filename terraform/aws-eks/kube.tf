@@ -10,7 +10,7 @@ resource "time_sleep" "wait_eks_destroy" {
 
 ################################################################################
 # Module eks-auth - Configuration in this directory creates/updates the aws-auth ConfigMap.
-# https://github.com/terraform-aws-modules/terraform-aws-eks/tree/master/modules/aws-auth
+# https://github.com/terraform-aws-modules/terraform-aws-eks/tree/v20.37.2/modules/aws-auth
 ################################################################################
 # Configmap is use to make a link between iam role and k8s cluster role
 
@@ -26,7 +26,7 @@ module "eks-auth" {
     time_sleep.wait_eks
   ]
   source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "~> 20.31.6"
+  version = "~> 20.37.2"
 
   # Creates aws-auth configmap - to enable acces to cluster using IAM
   manage_aws_auth_configmap = true

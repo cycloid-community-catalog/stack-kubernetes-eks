@@ -11,25 +11,24 @@ resource "helm_release" "aws_load_balancer_controller" {
   #   file("${path.module}/values.yaml")
   # ]
 
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = local.service_account_name
-  }
-
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.aws_lb_controller.arn
-  }
-
-  set {
-    name  = "replicaCount"
-    value = var.eks_node_desired_size > 1 ? 2 : 1
-  }
+  set = [
+    {
+      name  = "clusterName"
+      value = var.cluster_name
+    },
+    {
+      name  = "serviceAccount.name"
+      value = local.service_account_name
+    },
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = aws_iam_role.aws_lb_controller.arn
+    },
+    {
+      name  = "replicaCount"
+      value = var.eks_node_desired_size > 1 ? 2 : 1
+    }
+  ]
 
   depends_on = [
     aws_iam_role_policy_attachment.aws_lb_controller

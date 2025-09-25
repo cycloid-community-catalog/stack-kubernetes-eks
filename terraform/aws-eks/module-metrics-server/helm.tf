@@ -18,8 +18,9 @@ resource "helm_release" "metrics_server" {
   #   file("${path.module}/values.yaml")
   # ]
 
-  # set {
-  #   name  = "replicas"
-  #   value = var.eks_node_desired_size > 1 ? 2 : 1
-  # }
+  # set = [ {
+  #     name  = "replicas"
+  #     value = var.eks_node_desired_size > 1 ? 2 : 1
+  #   }
+  # ]
 }

@@ -1,16 +1,18 @@
 ################################################################################
 # EKS Module https://github.com/terraform-aws-modules/terraform-aws-eks
 # https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
+# https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/CHANGELOG.md
+# https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/UPGRADE-21.0.md
 ################################################################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.31.6"
+  version = "21.3.1"
 
-  cluster_name    = "${var.project}-${var.env}"
-  cluster_version = "1.31"
+  name    = "${var.project}-${var.env}"
+  kubernetes_version = "1.31"
 
   # extra addons required
-  cluster_addons = {
+  addons = {
     # DNS server that can serve as the Kubernetes cluster DNS
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html
     coredns = {}
@@ -27,64 +29,52 @@ module "eks" {
   }
 
   # Configuration of nodes
-
-  # EKS Managed Node Group(s)
-  # default node group to add more add: eks_managed_node_groups group
-  # all available options to configure cluster here https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/node_groups.tf#L230
-  eks_managed_node_group_defaults = {
-    # ami_type       = "AL2_x86_64"
-    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large"]
-    capacity_type  = "ON_DEMAND"
-    key_name       = var.keypair_name
-
-    # can't use disk_size because the module by default use a custom template and this param is not compatible
-    # disk_size      = var.node_disk_size
-    # we have to define the block_device_mappings
-    block_device_mappings = {
-      xvda = {
-        device_name = "/dev/xvda"
-        ebs = {
-          volume_size           = var.node_disk_size
-          volume_type           = "gp3"
-          iops                  = 3000
-          throughput            = 150
-          delete_on_termination = true
-        }
-      }
-    }
-
-    # We are using the IRSA created below for permissions
-    # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
-    # and then turn this off after the cluster/node group is created. Without this initial policy,
-    # the VPC CNI fails to assign IPs and nodes cannot join the cluster
-    # See https://github.com/aws/containers-roadmap/issues/1666 for more context
-    iam_role_attach_cni_policy = true
-
-    # https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
-    # The current bootstrap.sh script don't take care about prefix delegation. So we need to set ourself the max-pod
-    # Recommendation: less than 30 vCPUs the maximum number is 110 else 250
-    # https://github.com/awslabs/amazon-eks-ami/blob/master/files/bootstrap.sh
-    pre_bootstrap_user_data = <<-EOT
-    #!/bin/bash
-    set -ex
-    cat <<-EOF > /etc/profile.d/bootstrap.sh
-    # export CONTAINER_RUNTIME="containerd" # default since 1.24
-    export USE_MAX_PODS=false
-    export KUBELET_EXTRA_ARGS="--max-pods=110"
-    EOF
-    # Source extra environment variables in bootstrap script
-    sed -i '/^set -o errexit/a\\nsource /etc/profile.d/bootstrap.sh' /etc/eks/bootstrap.sh
-    sed -i 's/KUBELET_EXTRA_ARGS=$2/KUBELET_EXTRA_ARGS="$2 $KUBELET_EXTRA_ARGS"/' /etc/eks/bootstrap.sh
-    EOT
-
-  }
-
   eks_managed_node_groups = {
+    # all available options to configure cluster here https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/node_groups.tf#L263
     "k8s-${var.env}-green" = {
+      key_name       = var.keypair_name
       min_size       = 1
       max_size       = var.node_max_size
       desired_size   = var.node_desired_size
       instance_types = [var.node_instance_type]
+
+      # can't use disk_size because the module by default use a custom template and this param is not compatible
+      # disk_size      = var.node_disk_size
+      # we have to define the block_device_mappings
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = var.node_disk_size
+            volume_type           = "gp3"
+            iops                  = 3000
+            throughput            = 150
+            delete_on_termination = true
+          }
+        }
+      }
+      # We are using the IRSA created below for permissions
+      # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
+      # and then turn this off after the cluster/node group is created. Without this initial policy,
+      # the VPC CNI fails to assign IPs and nodes cannot join the cluster
+      # See https://github.com/aws/containers-roadmap/issues/1666 for more context
+      iam_role_attach_cni_policy = true
+
+    # node doesn't use bootstrap.sh anymore but nodeadm
+    # https://aws.amazon.com/fr/blogs/containers/amazon-eks-optimized-amazon-linux-2023-amis-now-available/
+    # https://awslabs.github.io/amazon-eks-ami/nodeadm/
+    # pre_bootstrap_user_data = <<-EOT
+    #   #!/bin/bash
+    #   mkdir -p /etc/nodeadm
+    #   cat <<EOF >/etc/nodeadm/config.yaml
+    #   apiVersion: node.cluster.x-k8s.io/v1beta1
+    #   kind: NodeConfig
+    #   kubelet:
+    #     maxPods: 110
+    #   EOF
+    # EOT
+    }
+
     }
   }
 
@@ -95,8 +85,8 @@ module "eks" {
   # configure access to cluster
 
   # enable private and public access to cluster
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
+  endpoint_private_access = true
+  endpoint_public_access  = true
 
   # Enable authentification by API and configmap.
   # ConfigMap is used to map IAM role to cluster role
@@ -119,7 +109,7 @@ module "eks" {
   # to allow worker Kubelets and pods to receive communication from the cluster control plane
   # more information here: https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/network_connectivity.md#security-groups
   # Extend cluster security group rules
-  cluster_security_group_additional_rules = {
+  security_group_additional_rules = {
     egress_nodes_ephemeral_ports_tcp = {
       description                = "To node 1025-65535"
       protocol                   = "tcp"
@@ -154,11 +144,13 @@ module "eks" {
 ################################################################################
 # VPC Module https://github.com/terraform-aws-modules/terraform-aws-vpc
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
+# https://github.com/terraform-aws-modules/terraform-aws-vpc/tree/master/docs
+# https://github.com/terraform-aws-modules/terraform-aws-vpc/blob/master/CHANGELOG.md
 ################################################################################
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.17.0"
+  version = "6.2.0"
 
   name = "${var.project}-${var.env}"
 

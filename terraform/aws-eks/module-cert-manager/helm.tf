@@ -20,23 +20,24 @@ resource "helm_release" "cert_manager" {
   #   file("${path.module}/values.yaml")
   # ]
 
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.cert_manager.arn
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = var.service_account_name
-  }
-  set {
-    name  = "securityContext.fsGroup"
-    value = 1001
-  }
-  set {
-    name  = "crds.enabled"
-    value = true
-  }
+  set = [
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = aws_iam_role.cert_manager.arn
+    },
+    {
+      name  = "serviceAccount.name"
+      value = var.service_account_name
+    },
+    {
+      name  = "securityContext.fsGroup"
+      value = 1001
+    },
+    {
+      name  = "crds.enabled"
+      value = true
+    },
+  ]
 
   depends_on = [
     aws_iam_role_policy_attachment.cert_manager

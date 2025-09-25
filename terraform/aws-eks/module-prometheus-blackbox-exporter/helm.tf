@@ -16,17 +16,17 @@ resource "helm_release" "prometheus_blackbox" {
 
 
   # Fix the service name
-  set {
-    name  = "fullnameOverride"
-    value = "prometheus-blackbox-exporter"
-  }
-
-  # set {
+  set = [
+    {
+      name  = "fullnameOverride"
+      value = "prometheus-blackbox-exporter"
+    }
+  ]
+  # {
   #   name  = "serviceMonitor.enabled"
   #   value = true
-  # }
-
-  # set {
+  # },
+  # {
   #   name  = "pspEnabled"
   #   value = false
   # }
