@@ -60,7 +60,7 @@ provider "helm" {
     # Force refresh token to not expire after 15min
     # https://github.com/hashicorp/terraform-provider-kubernetes/issues/1131
     # since cc terraform image doesn't have awscli installed, here is a workaround
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
       command     = "aws"

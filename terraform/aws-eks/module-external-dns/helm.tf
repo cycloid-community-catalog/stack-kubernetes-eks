@@ -43,14 +43,6 @@ resource "helm_release" "external-dns" {
       name  = "interval"
       value = "1m"
     },
-    {
-      name  = "domainFilters[0]"
-      value = "phrasea.io"
-    },
-    {
-      name  = "domainFilters[1]"
-      value = "alchemyasp.com"
-    },
     # pod permissions to access route53
     {
       name  = "serviceAccount.name"

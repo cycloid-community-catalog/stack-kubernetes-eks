@@ -141,7 +141,7 @@ EOL
   # prom_additional_alertmanager_config = var.oncall_enabled ? local.prom_additional_alertmanager_config_default : ""
 
   # compose the main values map used by helm_release
-  global_values = {
+  global_values = yamlencode({
     ########################
     # kube-state-metrics   #
     ########################

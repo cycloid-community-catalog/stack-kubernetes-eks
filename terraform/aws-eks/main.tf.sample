@@ -6,9 +6,9 @@
 ################################################################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "21.3.1"
+  version = "21.3.2"
 
-  name    = "${var.project}-${var.env}"
+  name               = "${var.project}-${var.env}"
   kubernetes_version = "1.31"
 
   # extra addons required
@@ -60,21 +60,19 @@ module "eks" {
       # See https://github.com/aws/containers-roadmap/issues/1666 for more context
       iam_role_attach_cni_policy = true
 
-    # node doesn't use bootstrap.sh anymore but nodeadm
-    # https://aws.amazon.com/fr/blogs/containers/amazon-eks-optimized-amazon-linux-2023-amis-now-available/
-    # https://awslabs.github.io/amazon-eks-ami/nodeadm/
-    # pre_bootstrap_user_data = <<-EOT
-    #   #!/bin/bash
-    #   mkdir -p /etc/nodeadm
-    #   cat <<EOF >/etc/nodeadm/config.yaml
-    #   apiVersion: node.cluster.x-k8s.io/v1beta1
-    #   kind: NodeConfig
-    #   kubelet:
-    #     maxPods: 110
-    #   EOF
-    # EOT
-    }
-
+      # node doesn't use bootstrap.sh anymore but nodeadm
+      # https://aws.amazon.com/fr/blogs/containers/amazon-eks-optimized-amazon-linux-2023-amis-now-available/
+      # https://awslabs.github.io/amazon-eks-ami/nodeadm/
+      # pre_bootstrap_user_data = <<-EOT
+      #   #!/bin/bash
+      #   mkdir -p /etc/nodeadm
+      #   cat <<EOF >/etc/nodeadm/config.yaml
+      #   apiVersion: node.cluster.x-k8s.io/v1beta1
+      #   kind: NodeConfig
+      #   kubelet:
+      #     maxPods: 110
+      #   EOF
+      # EOT
     }
   }
 
@@ -123,12 +121,12 @@ module "eks" {
   # Extend node-to-node security group rules
   node_security_group_additional_rules = {
     ingress_self_all = {
-     description = "Node to node all ports/protocols"
-     protocol    = "-1"
-     from_port   = 0
-     to_port     = 0
-     type        = "ingress"
-     self        = true
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
     }
 
     # https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/node_groups.tf#L130
