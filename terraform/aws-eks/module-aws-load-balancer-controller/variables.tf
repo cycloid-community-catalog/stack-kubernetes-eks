@@ -37,3 +37,4 @@ variable "cluster_name" {}
 
 variable "ingress_controller_svc_name" {}
 variable "vpc_id" {}
+variable "aws_region" {}
