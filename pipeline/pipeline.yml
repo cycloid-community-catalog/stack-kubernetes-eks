@@ -93,7 +93,8 @@ resources:
     ($- if eq .scs_cred_type "basic_auth" $)
     username: ((($ .scs_cred_path $).username))
     password: ((($ .scs_cred_path $).password))
-    ($- else $)
+    ($- end $)
+    ($- if eq .scs_cred_type "ssh" $)
     private_key: ((($ .scs_cred_path $).ssh_key))
     ($- end $)
     paths:
@@ -109,7 +110,8 @@ resources:
     ($- if eq .cr_cred_type "basic_auth" $)
     username: ((($ .cr_cred_path $).username))
     password: ((($ .cr_cred_path $).password))
-    ($- else $)
+    ($- end $)
+    ($- if eq .cr_cred_type "ssh" $)
     private_key: ((($ .cr_cred_path $).ssh_key))
     ($- end $)
     paths:
