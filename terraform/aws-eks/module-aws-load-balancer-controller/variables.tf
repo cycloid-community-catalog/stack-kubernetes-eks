@@ -36,3 +36,4 @@ variable "eks_node_desired_size" {}
 variable "cluster_name" {}
 
 variable "ingress_controller_svc_name" {}
+variable "vpc_id" {}

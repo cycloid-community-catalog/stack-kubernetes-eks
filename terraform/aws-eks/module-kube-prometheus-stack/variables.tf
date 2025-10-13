@@ -59,6 +59,7 @@ resource "random_password" "password" {
 variable "managed_domain" {
   default = "svc.local"
 }
+
 output "monitoring_access" {
   sensitive = true
   value = { for k in local.service_enabled :

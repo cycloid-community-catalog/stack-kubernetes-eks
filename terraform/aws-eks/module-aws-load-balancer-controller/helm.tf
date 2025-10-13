@@ -13,6 +13,10 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set = [
     {
+      name  = "vpcId"
+      value = var.vpc_id
+    },
+    {
       name  = "clusterName"
       value = var.cluster_name
     },

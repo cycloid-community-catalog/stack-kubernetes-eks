@@ -19,6 +19,11 @@ It creates:
 Check pipeline access job
 
 ```bash
+# If needed to assume role
+# export AWS_ROLE_ARN="arn:aws:iam::xxxxxxxx:role/admin"
+# aws sts assume-role --role-arn $AWS_ROLE_ARN --role-session-name admin | jq -r '.Credentials | "export AWS_ACCESS_KEY_ID=\(.AccessKeyId); export AWS_SECRET_ACCESS_KEY=\(.SecretAccessKey) export AWS_SESSION_TOKEN=\(.SessionToken)"' > /tmp/awslogin
+# source /tmp/awslogin
+
 aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig  --name ${CLUSTER_NAME}
 ```
 

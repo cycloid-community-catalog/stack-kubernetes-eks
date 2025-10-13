@@ -18,12 +18,20 @@ module "eks" {
     coredns = {}
     # kube-proxy maintains network rules on nodes
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-kube-proxy.html
-    kube-proxy = {}
+    kube-proxy = {
+      before_compute = true
+    }
+
+    # https://docs.aws.amazon.com/eks/latest/userguide/pod-id-agent-setup.html
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
 
     # allows pods to have the same IP address inside the pod as they do on the VPC network
     # more info https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html
     # If needed to update manually: https://docs.aws.amazon.com/en_us/eks/latest/userguide/managing-vpc-cni.html
     vpc-cni = {
+      before_compute       = true
       configuration_values = local.vpc_cni_config
     }
   }
