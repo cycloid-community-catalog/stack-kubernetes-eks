@@ -223,9 +223,10 @@ module "monitoring" {
   #####################################
 
   prometheus_enabled           = var.prometheus_enabled
+  prometheus_pvc_size          = var.prometheus_pvc_size
   namespace                    = kubernetes_namespace_v1.infra.metadata.0.name
   storage_class_name           = module.ebs-csi-driver.storage_class_name
-  prometheus_pvc_size          = var.prometheus_pvc_size
+  managed_domain               = var.managed_domain
   secret_basic_auth_infra_name = var.secret_basic_auth_infra_name
   depends_on = [
     time_sleep.wait_ebs_destroy,

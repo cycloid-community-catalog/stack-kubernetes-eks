@@ -53,14 +53,17 @@ resource "random_password" "password" {
 # }
 #
 # output "monitoring_urls" {
-#   value = { for k in local.service_enabled : k => "${k}.${var.project}-${var.env}.phrasea.io" }
+#   value = { for k in local.service_enabled : k => "${k}.${var.project}-${var.env}.${managed_domain}" }
 # }
 
+variable "managed_domain" {
+  default = "svc.local"
+}
 output "monitoring_access" {
   sensitive = true
   value = { for k in local.service_enabled :
     k => {
-      url : "https://${k}.${var.project}-${var.env}.phrasea.io",
+      url : "https://${k}.${var.project}-${var.env}.${managed_domain}",
       "user" : "admin",
       "password" : random_password.password.result
     }

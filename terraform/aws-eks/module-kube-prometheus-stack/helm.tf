@@ -162,7 +162,7 @@ EOL
       ingress = {
         enabled = contains(local.service_enabled, "grafana")
         hosts = [
-          "grafana.${var.project}-${var.env}.phrasea.io"
+          "grafana.${var.project}-${var.env}.${var.managed_domain}"
         ]
         annotations = {
           "nginx.ingress.kubernetes.io/auth-type"          = "basic"
@@ -181,7 +181,7 @@ EOL
       ingress = {
         enabled = contains(local.service_enabled, "prometheus")
         hosts = [
-          "prometheus.${var.project}-${var.env}.phrasea.io"
+          "prometheus.${var.project}-${var.env}.${var.managed_domain}"
         ]
         annotations = {
           "nginx.ingress.kubernetes.io/auth-type"          = "basic"
@@ -198,22 +198,19 @@ EOL
             # change default pv name because because pvc can't be changed
             metadata = { name = "prometheus" }
             spec = {
-              resources        = { requests = { storage = "1Gi" } }
-              storageClassName = kubernetes_storage_class_v1.efs.id
+              resources        = { requests = { storage = "${var.prometheus_pvc_size}Gi" } }
+              storageClassName = var.storage_class_name
               accessModes      = ["ReadWriteOnce"]
             }
           }
         }
         retention = "40d"
         externalLabels = {
-          customer = "alchemy"
-          env      = var.env
-          project  = var.project
-          receiver = "on_call"
-        }
-
-        nodeSelector = {
-          infra = "true"
+          customer     = var.organization
+          organization = var.organization
+          env          = var.env
+          project      = var.project
+          receiver     = "on_call"
         }
       }
     }
@@ -226,7 +223,7 @@ EOL
       ingress = {
         enabled = contains(local.service_enabled, "alertmanager")
         hosts = [
-          "alertmanager.${var.project}-${var.env}.phrasea.io"
+          "alertmanager.${var.project}-${var.env}.${var.managed_domain}"
         ]
         annotations = {
           "nginx.ingress.kubernetes.io/auth-type"          = "basic"
