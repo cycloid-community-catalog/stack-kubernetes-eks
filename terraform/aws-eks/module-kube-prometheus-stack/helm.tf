@@ -265,9 +265,6 @@ EOL
     # Add any extra raw YAML blobs you had
     additionalPrometheusRules = local.prom_additional_rules != "" ? local.prom_additional_rules : null
 
-    # Add alertmanager extra config via file if oncall enabled
-    additionalAlertmanagerConfigs = var.oncall_enabled ? local.prom_additional_alertmanager_config : null
-
     # example secret mounts or other chart values you used previously
     # secretMounts example if the chart supports it:
     secretMounts = [
