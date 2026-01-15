@@ -2,38 +2,33 @@
 # https://flosell.github.io/iam-policy-json-to-terraform/
 
 data "aws_iam_policy_document" "cert_manager" {
-
   statement {
-    actions = [
-      "route53:GetChange"
-    ]
-    resources = [
-      "arn:aws:route53:::change/*"
-    ]
-    effect = "Allow"
+    effect    = "Allow"
+    resources = ["arn:aws:route53:::change/*"]
+    actions   = ["route53:GetChange"]
   }
 
   statement {
+    effect    = "Allow"
+    resources = ["arn:aws:route53:::hostedzone/*"]
+
     actions = [
       "route53:ChangeResourceRecordSets",
-      "route53:ListResourceRecordSets"
+      "route53:ListResourceRecordSets",
     ]
-    resources = [
-      "arn:aws:route53:::hostedzone/*"
-    ]
-    effect = "Allow"
+
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "route53:ChangeResourceRecordSetsRecordTypes"
+      values   = ["TXT"]
+    }
   }
 
   statement {
-    actions = [
-      "route53:ListHostedZonesByName"
-    ]
-    resources = [
-      "*"
-    ]
-    effect = "Allow"
+    effect    = "Allow"
+    resources = ["*"]
+    actions   = ["route53:ListHostedZonesByName"]
   }
-
 }
 
 resource "aws_iam_policy" "cert_manager" {

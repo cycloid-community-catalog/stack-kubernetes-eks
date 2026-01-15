@@ -11,7 +11,7 @@ shared:
       type: registry-image
       source:
         repository: cycloid/cycloid-toolkit
-        tag: "v8.3"
+        tag: "latest"
     run:
       path: /usr/bin/merge-stack-and-config
     outputs:
