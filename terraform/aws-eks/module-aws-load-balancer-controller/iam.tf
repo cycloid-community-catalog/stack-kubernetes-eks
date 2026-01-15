@@ -1,8 +1,8 @@
 # https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
 # https://flosell.github.io/iam-policy-json-to-terraform/
+
 data "aws_iam_policy_document" "aws_lb_controller" {
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
     actions   = ["iam:CreateServiceLinkedRole"]
@@ -15,7 +15,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -34,6 +33,8 @@ data "aws_iam_policy_document" "aws_lb_controller" {
       "ec2:GetCoipPoolUsage",
       "ec2:DescribeCoipPools",
       "ec2:GetSecurityGroupsForVpc",
+      "ec2:DescribeIpamPools",
+      "ec2:DescribeRouteTables",
       "elasticloadbalancing:DescribeLoadBalancers",
       "elasticloadbalancing:DescribeLoadBalancerAttributes",
       "elasticloadbalancing:DescribeListeners",
@@ -51,7 +52,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -77,7 +77,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -88,14 +87,12 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
     actions   = ["ec2:CreateSecurityGroup"]
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["arn:aws:ec2:*:*:security-group/*"]
     actions   = ["ec2:CreateTags"]
@@ -114,7 +111,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["arn:aws:ec2:*:*:security-group/*"]
 
@@ -125,19 +121,18 @@ data "aws_iam_policy_document" "aws_lb_controller" {
 
     condition {
       test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["true"]
+      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+      values   = ["false"]
     }
 
     condition {
       test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
+      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+      values   = ["true"]
     }
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -155,7 +150,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -172,7 +166,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -185,7 +178,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid    = ""
     effect = "Allow"
 
     resources = [
@@ -201,19 +193,18 @@ data "aws_iam_policy_document" "aws_lb_controller" {
 
     condition {
       test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["true"]
+      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+      values   = ["false"]
     }
 
     condition {
       test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
+      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+      values   = ["true"]
     }
   }
 
   statement {
-    sid    = ""
     effect = "Allow"
 
     resources = [
@@ -230,7 +221,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -245,6 +235,7 @@ data "aws_iam_policy_document" "aws_lb_controller" {
       "elasticloadbalancing:DeleteTargetGroup",
       "elasticloadbalancing:ModifyListenerAttributes",
       "elasticloadbalancing:ModifyCapacityReservation",
+      "elasticloadbalancing:ModifyIpPools",
     ]
 
     condition {
@@ -255,7 +246,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid    = ""
     effect = "Allow"
 
     resources = [
@@ -284,7 +274,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"]
 
@@ -295,7 +284,6 @@ data "aws_iam_policy_document" "aws_lb_controller" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -305,6 +293,7 @@ data "aws_iam_policy_document" "aws_lb_controller" {
       "elasticloadbalancing:AddListenerCertificates",
       "elasticloadbalancing:RemoveListenerCertificates",
       "elasticloadbalancing:ModifyRule",
+      "elasticloadbalancing:SetRulePriorities",
     ]
   }
 }
