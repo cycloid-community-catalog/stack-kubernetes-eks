@@ -87,6 +87,7 @@ locals {
 prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
+      # available config: https://github.com/prometheus/blackbox_exporter/blob/master/CONFIGURATION.md#http_probe
       - job_name: kubernetes-ingresses
         metrics_path: /probe
         params:
@@ -101,7 +102,7 @@ prometheus:
             regex: true
 
           # check the ingress schema/url/path (default all)
-          - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
+          - source_labels: [__meta_kubernetes_ingress_scheme,__meta_kubernetes_ingress_host,__meta_kubernetes_ingress_path]
             regex: (.+);(.+);(.+)
             replacement: $${1}://$${2}$${3}
             target_label: __param_target
@@ -142,6 +143,14 @@ EOL
 
   # compose the main values map used by helm_release
   global_values = yamlencode({
+    crds = {
+      enabled = true
+      upgradeJob = {
+        enabled        = true
+        forceConflicts = true
+      }
+    }
+
     ########################
     # kube-state-metrics   #
     ########################
@@ -283,13 +292,13 @@ EOL
 #oncall_alertnamager_cred.password
 
 # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack
-# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#upgrading-an-existing-release-to-a-new-major-version
+# https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/UPGRADE.md
 resource "helm_release" "prometheus_community" {
   count      = var.prometheus_enabled ? 1 : 0
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "67.8.0"
+  version    = "82.9.0"
   namespace  = var.namespace
 
   # file("${path.module}/values.yaml"),

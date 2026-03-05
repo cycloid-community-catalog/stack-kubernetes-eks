@@ -11,17 +11,22 @@ image:
 customLabels: {}
 # k8s-app: aws-ebs-csi-driver
 
+# Instruct the AWS SDK to use AWS FIPS endpoints, and deploy container built with Boring Crypto (a FIPS-validated cryptographic library) instead of the Go default
+#
+# The EBS CSI Driver FIPS images have not undergone FIPS certification, and no official guarantee is made about the compliance of these images under the FIPS standard
+# Users relying on these images for FIPS compliance should perform their own independent evaluation
+fips: false
 sidecars:
   provisioner:
     env: []
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner
-      tag: "v5.1.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/csi-provisioner
+      tag: "v6.1.0-eksbuild.2"
     logLevel: 2
-    # Additional parameters provided by external-provisioner.
+    # Additional parameters provided by csi-provisioner.
     additionalArgs: []
-    # Grant additional permissions to external-provisioner
+    # Grant additional permissions to csi-provisioner
     additionalClusterRoleRules:
     resources: {}
     # Tune leader lease election for csi-provisioner.
@@ -43,8 +48,8 @@ sidecars:
     env: []
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/external-attacher
-      tag: "v4.7.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/csi-attacher
+      tag: "v4.10.0-eksbuild.3"
     # Tune leader lease election for csi-attacher.
     # Leader election is on by default.
     leaderElection:
@@ -56,9 +61,9 @@ sidecars:
       # renewDeadline: "10s"
       # retryPeriod: "5s"
     logLevel: 2
-    # Additional parameters provided by external-attacher.
+    # Additional parameters provided by csi-attacher.
     additionalArgs: []
-    # Grant additional permissions to external-attacher
+    # Grant additional permissions to csi-attacher
     additionalClusterRoleRules: []
     resources: {}
     securityContext:
@@ -72,8 +77,8 @@ sidecars:
     env: []
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/external-snapshotter/csi-snapshotter
-      tag: "v8.1.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/csi-snapshotter
+      tag: "v8.4.0-eksbuild.3"
     logLevel: 2
     # Additional parameters provided by csi-snapshotter.
     additionalArgs: []
@@ -85,11 +90,23 @@ sidecars:
         type: RuntimeDefault
       readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
+  metadataLabeler:
+    # ALPHA: Enable the metadata-labeler sidecar to label Kubernetes Nodes with
+    # information from the EC2 API (e.g. number of ENIs)
+    # Also requires using metadata-labeler as the node's metadata source
+    enabled: false
+    logLevel: 2
+    # Additional parameters provided by metadataLabeler.
+    additionalArgs: []
+    resources: {}
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
   livenessProbe:
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe
-      tag: "v2.14.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/livenessprobe
+      tag: "v2.17.0-eksbuild.3"
     # Additional parameters provided by livenessprobe.
     additionalArgs: []
     resources: {}
@@ -100,8 +117,8 @@ sidecars:
     env: []
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/external-resizer
-      tag: "v1.12.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/csi-resizer
+      tag: "v2.0.0-eksbuild.3"
     # Tune leader lease election for csi-resizer.
     # Leader election is on by default.
     leaderElection:
@@ -113,9 +130,9 @@ sidecars:
       # renewDeadline: "10s"
       # retryPeriod: "5s"
     logLevel: 2
-    # Additional parameters provided by external-resizer.
+    # Additional parameters provided by csi-resizer.
     additionalArgs: []
-    # Grant additional permissions to external-resizer
+    # Grant additional permissions to csi-resizer
     additionalClusterRoleRules: []
     resources: {}
     securityContext:
@@ -127,8 +144,8 @@ sidecars:
     env: []
     image:
       pullPolicy: IfNotPresent
-      repository: public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar
-      tag: "v2.12.0-eks-1-32-1"
+      repository: public.ecr.aws/csi-components/csi-node-driver-registrar
+      tag: "v2.15.0-eksbuild.3"
     logLevel: 2
     # Additional parameters provided by node-driver-registrar.
     additionalArgs: []
@@ -150,7 +167,7 @@ sidecars:
     image:
       pullPolicy: IfNotPresent
       repository: public.ecr.aws/ebs-csi-driver/volume-modifier-for-k8s
-      tag: "v0.5.0"
+      tag: "v0.9.1"
     leaderElection:
       enabled: true
       # Optional values to tune lease behavior.
@@ -182,6 +199,8 @@ controller:
   batching: true
   volumeModificationFeature:
     enabled: false
+  # Enable support for node-local volumes that use pre-attached EBS volumes
+  enableNodeLocalVolumes: false
   # Additional parameters provided by aws-ebs-csi-driver controller.
   additionalArgs: []
   sdkDebugLog: false
@@ -215,7 +234,7 @@ controller:
   env: []
   # Use envFrom to reference ConfigMaps and Secrets across all containers in the deployment
   envFrom: []
-  # If set, add pv/pvc metadata to plugin create requests as parameters.
+  # If set, add pv/pvc metadata to plugin create and modify requests as parameters.
   extraCreateMetadata: true
   # Extra volume tags to attach to each dynamically provisioned volume.
   # ---
@@ -229,12 +248,14 @@ controller:
   # The default is empty string, which means metrics endpoint is disabled.
   # ---
   enableMetrics: false
+  # If metrics are enabled, add prometheus.io/scrape and prometheus.io/port
+  # annotations to the metrics services.
+  enablePrometheusAnnotations: true
   serviceMonitor:
     # Enables the ServiceMonitor resource even if the prometheus-operator CRDs are not installed
     forceEnable: false
     # Additional labels for ServiceMonitor object
-    labels:
-      release: prometheus
+    labels: {}
     interval: "15s"
   # If set to true, AWS API call metrics will be exported to the following
   # TCP endpoint: "0.0.0.0:3301"
@@ -252,6 +273,10 @@ controller:
     # pod restarts or evictions.
     enabled: true
     # unhealthyPodEvictionPolicy:
+    # Configure the maxUnavailable or minAvailable for the PDB
+    # If either parameter is non-null, no default is used for both
+    # maxUnavailable:
+    # minAvailable:
   priorityClassName: system-cluster-critical
   # AWS region to use. If not specified then the region will be looked up via the AWS EC2 metadata
   # service.
@@ -332,22 +357,34 @@ controller:
   # Example:
   #
   # - name: wait
-  #   image: busybox
+  #   image: public.ecr.aws/amazonlinux/amazonlinux
   #   command: [ 'sh', '-c', "sleep 20" ]
   # Enable opentelemetry tracing for the plugin running on the daemonset
   otelTracing: {}
   #  otelServiceName: ebs-csi-controller
   #  otelExporterEndpoint: "http://localhost:4317"
 
-  # Enable dnsConfig for the controller and node pods
+  # dnsConfig for the controller pods
   dnsConfig: {}
 node:
+  # Enable SELinux-only optimizations on the EBS CSI Driver node pods
+  # Must only be set true if all linux nodes in the DaemonSet have SELinux enabled
+  selinux: false
   env: []
   envFrom: []
   kubeletPath: /var/lib/kubelet
   loggingFormat: text
   logLevel: 2
   enableMetrics: false
+  # If metrics are enabled, add prometheus.io/scrape and prometheus.io/port
+  # annotations to the metrics services.
+  enablePrometheusAnnotations: true
+  serviceMonitor:
+    # Enables the ServiceMonitor resource even if the prometheus-operator CRDs are not installed
+    forceEnable: false
+    # Additional labels for ServiceMonitor object
+    labels: {}
+    interval: "15s"
   priorityClassName:
   additionalArgs: []
   affinity:
@@ -395,9 +432,15 @@ node:
     ## Enable if EKS IAM for SA is used
     # eks.amazonaws.com/role-arn: arn:<partition>:iam::<account>:role/ebs-csi-role
     automountServiceAccountToken: true
+    # Disable mutating permissions for the node service account.
+    # When enabled, some features of the EBS CSI Driver node pods will not function, such as taint removal.
+    # Primarily useful in particularly security-sensitive environments, or on multi-tenant clusters that isolate tenants by node.
+    disableMutation: false
   # Enable the linux daemonset creation
   enableLinux: true
-  enableWindows: false
+  enableWindows: true
+  # Comma separated list of metadata sources that override the default used by the EBS CSI Driver. Valid sources include 'imds', 'kubernetes', and (ALPHA) 'metadata-labeler'
+  metadataSources:
   # Warning: This option will be removed in a future release. It is a temporary workaround for users unable to immediately migrate off of older kernel versions.
   # Formats XFS volumes with bigtime=0,inobtcount=0,reflink=0, for mounting onto nodes with linux kernel version <= 5.4.
   # Note that XFS volumes formatted with this option will only have timestamp records until 2038.
@@ -446,12 +489,15 @@ node:
   # Example:
   #
   # - name: wait
-  #   image: busybox
+  #   image: public.ecr.aws/amazonlinux/amazonlinux
   #   command: [ 'sh', '-c', "sleep 20" ]
   # Enable opentelemetry tracing for the plugin running on the daemonset
   otelTracing: {}
   #  otelServiceName: ebs-csi-node
   #  otelExporterEndpoint: "http://localhost:4317"
+
+  # dnsConfig for the node pods
+  dnsConfig: {}
 additionalDaemonSets:
 # Additional node DaemonSets, using the node config structure
 # See docs/additional-daemonsets.md for more information
@@ -498,9 +544,15 @@ volumeSnapshotClasses: []
 # Intended for use with older clusters that cannot easily replace the CSIDriver object
 # This parameter should always be false for new installations
 useOldCSIDriver: false
+# nodeAllocatableUpdatePeriodSeconds updates the node's max attachable volume count by directing Kubelet to periodically call NodeGetInfo at the configured interval.
+# Kubernetes enforces a minimum update interval of 10 seconds. A value of -1 uses a automatically determined value dependent on metadata sources.
+# This parameter is supported in Kubernetes 1.33+ and requires the MutableCSINodeAllocatableCount feature gate to be enabled in kubelet and kube-apiserver.
+nodeAllocatableUpdatePeriodSeconds: -1
 # Deploy EBS CSI Driver without controller and associated resources
 nodeComponentOnly: false
+# Set maximum verbosity for logs of each container and other recommended debugging parameters such as enabling AWS SDK debug logging
+debugLogs: false
 helmTester:
   enabled: true
   # Supply a custom image to the ebs-csi-driver-test pod in helm-tester.yaml
-  image: "us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20241128-8df65c072f-master"
+  image: "us-central1-docker.pkg.dev/k8s-staging-test-infra/images/kubekins-e2e:v20251209-855adc2699-master"

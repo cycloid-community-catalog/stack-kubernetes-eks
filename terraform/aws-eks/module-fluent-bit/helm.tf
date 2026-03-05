@@ -19,7 +19,7 @@ resource "helm_release" "fluent-bit" {
   name       = "aws-for-fluent-bit"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-for-fluent-bit"
-  version    = "0.1.34"
+  version    = "0.1.35"
   namespace  = var.namespace
 
   values = [

@@ -2,7 +2,6 @@
 # https://flosell.github.io/iam-policy-json-to-terraform/
 data "aws_iam_policy_document" "efs_csi_driver" {
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
@@ -15,7 +14,6 @@ data "aws_iam_policy_document" "efs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
     actions   = ["elasticfilesystem:CreateAccessPoint"]
@@ -28,7 +26,6 @@ data "aws_iam_policy_document" "efs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
     actions   = ["elasticfilesystem:TagResource"]
@@ -41,7 +38,6 @@ data "aws_iam_policy_document" "efs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
     actions   = ["elasticfilesystem:DeleteAccessPoint"]

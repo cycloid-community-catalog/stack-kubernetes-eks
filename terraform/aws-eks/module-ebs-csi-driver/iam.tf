@@ -1,27 +1,63 @@
 # https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/example-iam-policy.json
 # https://flosell.github.io/iam-policy-json-to-terraform/
+
 data "aws_iam_policy_document" "ebs_csi_driver" {
   statement {
-    sid       = ""
     effect    = "Allow"
     resources = ["*"]
 
     actions = [
-      "ec2:CreateSnapshot",
-      "ec2:AttachVolume",
-      "ec2:DetachVolume",
-      "ec2:ModifyVolume",
       "ec2:DescribeAvailabilityZones",
       "ec2:DescribeInstances",
       "ec2:DescribeSnapshots",
       "ec2:DescribeTags",
       "ec2:DescribeVolumes",
       "ec2:DescribeVolumesModifications",
+      "ec2:DescribeVolumeStatus",
     ]
   }
 
   statement {
-    sid    = ""
+    effect    = "Allow"
+    resources = ["arn:aws:ec2:*:*:volume/*"]
+
+    actions = [
+      "ec2:CreateSnapshot",
+      "ec2:ModifyVolume",
+    ]
+  }
+
+  statement {
+    effect    = "Allow"
+    resources = ["arn:aws:ec2:*:*:volume/vol-*"]
+    actions   = ["ec2:CopyVolumes"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    resources = [
+      "arn:aws:ec2:*:*:volume/*",
+      "arn:aws:ec2:*:*:instance/*",
+    ]
+
+    actions = [
+      "ec2:AttachVolume",
+      "ec2:DetachVolume",
+    ]
+  }
+
+  statement {
+    effect    = "Allow"
+    resources = ["arn:aws:ec2:*:*:snapshot/*"]
+
+    actions = [
+      "ec2:CreateVolume",
+      "ec2:EnableFastSnapshotRestores",
+    ]
+  }
+
+  statement {
     effect = "Allow"
 
     resources = [
@@ -38,12 +74,12 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
       values = [
         "CreateVolume",
         "CreateSnapshot",
+        "CopyVolumes",
       ]
     }
   }
 
   statement {
-    sid    = ""
     effect = "Allow"
 
     resources = [
@@ -55,10 +91,13 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
-    actions   = ["ec2:CreateVolume"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
+
+    actions = [
+      "ec2:CreateVolume",
+      "ec2:CopyVolumes",
+    ]
 
     condition {
       test     = "StringLike"
@@ -68,10 +107,13 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
-    actions   = ["ec2:CreateVolume"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
+
+    actions = [
+      "ec2:CreateVolume",
+      "ec2:CopyVolumes",
+    ]
 
     condition {
       test     = "StringLike"
@@ -81,9 +123,8 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
     actions   = ["ec2:DeleteVolume"]
 
     condition {
@@ -94,9 +135,8 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
     actions   = ["ec2:DeleteVolume"]
 
     condition {
@@ -107,9 +147,8 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*:*:volume/*"]
     actions   = ["ec2:DeleteVolume"]
 
     condition {
@@ -120,9 +159,32 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*:*:snapshot/*"]
+    actions   = ["ec2:CreateSnapshot"]
+
+    condition {
+      test     = "StringLike"
+      variable = "aws:RequestTag/CSIVolumeSnapshotName"
+      values   = ["*"]
+    }
+  }
+
+  statement {
+    effect    = "Allow"
+    resources = ["arn:aws:ec2:*:*:snapshot/*"]
+    actions   = ["ec2:CreateSnapshot"]
+
+    condition {
+      test     = "StringLike"
+      variable = "aws:RequestTag/ebs.csi.aws.com/cluster"
+      values   = ["true"]
+    }
+  }
+
+  statement {
+    effect    = "Allow"
+    resources = ["arn:aws:ec2:*:*:snapshot/*"]
     actions   = ["ec2:DeleteSnapshot"]
 
     condition {
@@ -133,9 +195,8 @@ data "aws_iam_policy_document" "ebs_csi_driver" {
   }
 
   statement {
-    sid       = ""
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:ec2:*:*:snapshot/*"]
     actions   = ["ec2:DeleteSnapshot"]
 
     condition {
