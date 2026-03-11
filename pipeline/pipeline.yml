@@ -88,14 +88,20 @@ resources:
   type: git
   icon: github-circle
   source:
-    uri: ($ .scs_url $)
-    branch: ($ .scs_branch $)
-    ($- if eq .scs_cred_type "basic_auth" $)
-    username: ((($ .scs_cred_path $).username))
-    password: ((($ .scs_cred_path $).password))
+    uri: ($ .catalog_repository_url $)
+    # Allow stack versioning by tag or branch
+    ($- if eq .stack_version_type "tag" $)
+    tag_filter: ($ .stack_version_ref $)
+    fetch_tags: true
+    ($- else $)
+    branch: ($ coalesce .stack_version_ref .catalog_repository_branch $)
     ($- end $)
-    ($- if eq .scs_cred_type "ssh" $)
-    private_key: ((($ .scs_cred_path $).ssh_key))
+    ($- if eq .catalog_repository_credential_type "basic_auth" $)
+    username: ((($ .catalog_repository_credential_path $).username))
+    password: ((($ .catalog_repository_credential_path $).password))
+    ($- end $)
+    ($- if eq .catalog_repository_credential_type "ssh" $)
+    private_key: ((($ .catalog_repository_credential_path $).ssh_key))
     ($- end $)
     paths:
       - terraform/aws-eks/*
@@ -105,14 +111,14 @@ resources:
   type: git
   icon: github-circle
   source:
-    uri: ($ .cr_url $)
-    branch: ($ .cr_branch $)
-    ($- if eq .cr_cred_type "basic_auth" $)
-    username: ((($ .cr_cred_path $).username))
-    password: ((($ .cr_cred_path $).password))
+    uri: ($ .config_repository_url $)
+    branch: ($ .config_repository_branch $)
+    ($- if eq .config_repository_credential_type "basic_auth" $)
+    username: ((($ .config_repository_credential_path $).username))
+    password: ((($ .config_repository_credential_path $).password))
     ($- end $)
-    ($- if eq .cr_cred_type "ssh" $)
-    private_key: ((($ .cr_cred_path $).ssh_key))
+    ($- if eq .config_repository_credential_type "ssh" $)
+    private_key: ((($ .config_repository_credential_path $).ssh_key))
     ($- end $)
     paths:
       - ($ .project $)/terraform/($ .environment $)/*
