@@ -69,6 +69,14 @@ module "eks" {
       # See https://github.com/aws/containers-roadmap/issues/1666 for more context
       iam_role_attach_cni_policy = true
 
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+
+      node_repair_config = {
+        enabled = true
+      }
+
       # node doesn't use bootstrap.sh anymore but nodeadm
       # https://aws.amazon.com/fr/blogs/containers/amazon-eks-optimized-amazon-linux-2023-amis-now-available/
       # https://awslabs.github.io/amazon-eks-ami/nodeadm/
